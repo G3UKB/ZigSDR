@@ -26,7 +26,6 @@
 
 const std = @import("std");
 const expect = std.testing.expect;
-//const stdout = std.io.getStdOut().writer();
 
 // Container local variables
 // Maximum sequence number
@@ -80,8 +79,8 @@ fn big_to_little_endian(big_endian: [4]u8) u32 {
 // ==========================================================================
 // Module test
 test "EP6 Sequence Check" {
-    var r: bool = try check_ep6_seq([_]u8{0,0,0,0});
     const stdout = std.io.getStdOut().writer();
+    var r: bool = try check_ep6_seq([_]u8{0,0,0,0});
     try stdout.print("\nEP6 check result {}\n", .{r});
     try expect(r==true);
 
