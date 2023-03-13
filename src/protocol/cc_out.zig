@@ -24,8 +24,11 @@
 // bob@bobcowdery.plus.com
 // 
 
+const std = @import("std");
+const expect = std.testing.expect;
+
 const cc_out_def = struct {
-    usingnamespace @import("../common/cc_out_defs.zig");
+    usingnamespace @import("cc_out_defs.zig");
 };
 
 //========================================================================
@@ -102,7 +105,7 @@ const CCO_DUPLEX_M: u8 = 0xfb;
 const CCO_NUM_RX_B = [3]u8{ 0x00,0x08,0x10 };
 const CCO_NUM_RX_M: u8 = 0xc7;
 // Alex auto
-const CCO_ALEX_AUTO_B = [u2]u8{ 0x00,0x40 };
+const CCO_ALEX_AUTO_B = [2]u8{ 0x00,0x40 };
 const CCO_ALEX_AUTO_M: u8 = 0xbf;
 // Alex HPF bypass
 const CCO_ALEX_HPF_BYPASS_B = [2]u8{ 0x00,0x20 };
@@ -142,7 +145,7 @@ var cc_idx: u32 = 0;
 // Default MOX state
 var cc_mox_state: bool = false;
 // Default array contains the C0 values that define how C1-C4 are defined
-var cc_array = [5][8]u8 {
+var cc_array = [8][5]u8 {
 	[_]u8{0x00, 0x00, 0x00, 0x00, 0x00},
 	[_]u8{0x02, 0x00, 0x00, 0x00, 0x00},
 	[_]u8{0x04, 0x00, 0x00, 0x00, 0x00},
@@ -181,7 +184,227 @@ pub fn cc_out_next_seq() [5]u8 {
 	}
 
 	// Return a copy of the current index array
-	return cc_el.clone();
+	// How to take a copy
+	return cc_el;
+}
+
+//==============================================================
+// Setting functions for every bit field in cc_array
+
+// Set/clear the MOX bit
+pub fn cc_mox(mox: bool) void {
+	if (mox) {
+		cc_mox_state = true;
+	} else {
+		cc_mox_state = false;
+	}
+}
+
+//========================================
+// Configuration settings
+
+// Set the bandwidth
+pub fn cc_speed(speed: cc_out_def.CCOSpeed) void {
+	const setting = CCO_SPEED_B[@enumToInt(speed)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC1, setting, CCO_SPEED_M);
+}
+
+// Set the 10MHz ref source
+pub fn cc_10_ref( reference: cc_out_def.CCO10MhzRef) void {
+	const setting = CCO_10MHZ_REF_B[@enumToInt(reference)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC1, setting, CCO_10MHZ_REF_M);
+}
+
+// Set the 122.88MHz ref source
+pub fn cc_122_ref( reference: cc_out_def.CCO122MhzRef) void {
+	const setting = CCO_122MHZ_REF_B[@enumToInt(reference)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC1 , setting, CCO_122MHZ_REF_M);
+}
+
+// Set the board config
+pub fn cc_board_config( config: cc_out_def.CCOBoardConfig) void {
+	const setting = CCO_BOARD_CONFIG_B[@enumToInt(config)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC1, setting, CCO_BOARD_CONFIG_M);
+}
+
+// Set the mic src
+pub fn cc_mic_src( src: cc_out_def.CCOMicSrc) void {
+	const setting = CCO_MIC_SRC_B[@enumToInt(src)];
+	cc_update(CCOBufferIdx.BGen , CCOByteIdx.CC1, setting, CCO_MIC_SRC_M);
+}
+
+// Set the alex attenuator
+pub fn cc_alex_attn( attn: cc_out_def.CCOAlexAttn) void {
+	const setting = CCO_ALEX_ATTN_B[@enumToInt(attn)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC3, setting, CCO_ALEX_ATTN_M);
+}
+
+// Set the preamp
+pub fn cc_preamp( preamp: cc_out_def.CCOPreamp) void {
+	const setting = CCO_PREAMP_B[@enumToInt(preamp)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC3, setting, CCO_PREAMP_M);
+}
+
+// Set the alex rx antenna
+pub fn cc_alex_rx_ant( ant: cc_out_def.CCORxAnt) void {
+	const setting = CCO_RX_ANT_B[@enumToInt(ant)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC3, setting, CCO_RX_ANT_M);
+}
+
+// Set the alex rx output
+pub fn cc_alex_rx_out( out: cc_out_def.CCOAlexRxOut) void {
+	const setting = CCO_ALEX_RX_OUT_B[@enumToInt(out)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC3, setting, CCO_ALEX_RX_OUT_M);
+}
+
+// Set the alex tx relay
+pub fn cc_alex_tx_rly( rly: cc_out_def.CCOAlexTxRly) void {
+	const setting = CCO_ALEX_TX_RLY_B[@enumToInt(rly)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC4, setting, CCO_ALEX_TX_RLY_M);
+}
+
+// Set duplex
+pub fn cc_duplex( duplex: cc_out_def.CCODuplex) void {
+	const setting = CCO_DUPLEX_B[@enumToInt(duplex)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC4, setting, CCO_DUPLEX_M);
+}
+
+// Set num rx
+pub fn cc_num_rx( num: cc_out_def.CCONumRx) void {
+	const setting = CCO_NUM_RX_B[@enumToInt(num)];
+	cc_update(CCOBufferIdx.BGen, CCOByteIdx.CC4 ,setting, CCO_NUM_RX_M);
+}
+
+//========================================
+// Alex filters
+
+// Set the alex auto mode
+pub fn cc_alex_auto( alex_auto: cc_out_def.CCOAlexAuto) void {
+	const setting = CCO_ALEX_AUTO_B[@enumToInt(alex_auto)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC2, setting, CCO_ALEX_AUTO_M);
+}
+
+// Bypass alex HPF
+pub fn cc_alex_hpf_bypass( bypass: cc_out_def.CCOAlexBypass) void {
+	const setting = CCO_ALEX_HPF_BYPASS_B[@enumToInt(bypass)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC2, setting, CCO_ALEX_HPF_BYPASS_M);
+}
+
+// LPF FIlter select
+// 30/20
+pub fn cc_lpf_30_20( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_30_20_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_30_20_M);
+}
+// 60/40
+pub fn cc_lpf_60_40( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_60_40_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_60_40_M);
+}
+// 80
+pub fn cc_lpf_80( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_80_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_80_M);
+}
+// 160
+pub fn cc_lpf_160( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_160_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_160_M);
+}
+// 6
+pub fn cc_lpf_6( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_6_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_6_M);
+}
+// 12/10
+pub fn cc_lpf_12_10( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_12_10_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_12_10_M);
+}
+// 17/15
+pub fn cc_lpf_17_15( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_LPF_17_15_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC4, setting, CCO_ALEX_LPF_17_15_M);
+}
+
+// HPF filter select
+// 13
+pub fn cc_hpf_13( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_HPF_13_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC3, setting, CCO_ALEX_HPF_13_M);
+}
+// 20
+pub fn cc_hpf_20( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_HPF_20_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC3, setting, CCO_ALEX_HPF_20_M);
+}
+// 9.5
+pub fn cc_hpf_9_5( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_HPF_9_5_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC3, setting, CCO_ALEX_HPF_9_5_M);
+}
+// 6.5
+pub fn cc_hpf_6_5( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_HPF_6_5_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC3, setting, CCO_ALEX_HPF_6_5_M);
+}
+// 1.5
+pub fn cc_hpf_1_5( select: cc_out_def.CCOAlexHpfLpf) void {
+	const setting = CCO_ALEX_HPF_1_5_B[@enumToInt(select)];
+	cc_update(CCOBufferIdx.BMisc1, CCOByteIdx.CC3, setting, CCO_ALEX_HPF_1_5_M);
+}
+
+//========================================
+// Frequency setting
+
+// Slightly different from the single fields as frequency is a 4 byte field
+// The common setting function
+fn cc_common_set_freq( buffer_idx: CCOBufferIdx, freq_in_hz: u32) void {
+	const idx = @enumToInt(buffer_idx);
+	cc_array[idx][1] = @intCast(u8, ((freq_in_hz >> 24) & 0xff));
+	cc_array[idx][2] = @intCast(u8, ((freq_in_hz >> 16) & 0xff));
+	cc_array[idx][3] = @intCast(u8, ((freq_in_hz >> 8) & 0xff));
+	cc_array[idx][4] = @intCast(u8, (freq_in_hz & 0xff));
+}
+
+//There are several frequencies for RX 1/TX and RX 2,3,4
+// RX 1/TX freq
+pub fn cc_set_rx_tx_freq( freq_in_hz: u32) void {
+	cc_common_set_freq(CCOBufferIdx.BRx1TxF, freq_in_hz);
+	cc_common_set_freq(CCOBufferIdx.BRx1F, freq_in_hz);
+}
+// RX 2 freq
+pub fn cc_set_rx2_freq( freq_in_hz: u32) void {
+	cc_common_set_freq(CCOBufferIdx.BRx2F, freq_in_hz);
+}
+// RX 3 freq
+pub fn cc_set_rx3_freq( freq_in_hz: u32) void {
+	cc_common_set_freq(CCOBufferIdx.BRx3F, freq_in_hz);
+}
+// TX freq
+pub fn cc_set_tx_freq( freq_in_hz: u32) void {
+	cc_common_set_freq(CCOBufferIdx.BRx1TxF, freq_in_hz);
+}
+
+//========================================
+// Set sensible initialisation values
+pub fn cc_init() void {
+	cc_mox(false);
+	cc_speed(cc_out_def.CCOSpeed.S48kHz);
+	cc_10_ref(cc_out_def.CCO10MhzRef.R10MHzMerc);
+	cc_122_ref(cc_out_def.CCO122MhzRef.R122MHzMerc);
+	cc_board_config(cc_out_def.CCOBoardConfig.BoardBoth);
+	cc_mic_src(cc_out_def.CCOMicSrc.MicPen);
+	cc_alex_attn(cc_out_def.CCOAlexAttn.Attn0db);
+	cc_preamp(cc_out_def.CCOPreamp.PreAmpOff);
+	cc_alex_rx_ant(cc_out_def.CCORxAnt.RxAntNone);
+	cc_alex_rx_out(cc_out_def.CCOAlexRxOut.RxOutOff );
+	cc_alex_tx_rly(cc_out_def.CCOAlexTxRly.TxRlyTx1);
+	cc_duplex(cc_out_def.CCODuplex.DuplexOff);
+	cc_num_rx(cc_out_def.CCONumRx.NumRx1);
+	cc_alex_auto(cc_out_def.CCOAlexAuto.AlexAuto);
+	cc_set_rx_tx_freq(7150000);
+	cc_set_tx_freq(7150000);
 }
 
 // ==========================================================================
@@ -196,7 +419,7 @@ fn cc_get_byte(array_idx: u32, byte_idx: u32) u8 {
 }
 
 // Overwrite the given byte at the given index in cc_array 
-fn cc_put_byte(array_idx: u32, byte_idx: u32, b: u8) noreturn {
+fn cc_put_byte(array_idx: u32, byte_idx: u32, b: u8) void {
 	cc_array[array_idx][byte_idx] = b;
 }
 
@@ -208,228 +431,17 @@ fn cc_set_bits(bit_setting: u8, bit_field: u8, bit_mask: u8) u8 {
 // Given the array and byte index get the corrent byte value 'b'.
 // Get the new byte with the field updated.
 // Update the given field in cc_array
-fn cc_update(array_idx: usize, byte_idx: usize, bit_setting: u8, bit_mask: u8) noreturn {
-	var b: u8 = self.cc_get_byte(array_idx, byte_idx);
+fn cc_update(array_idx: CCOBufferIdx, byte_idx: CCOByteIdx, bit_setting: u8, bit_mask: u8) void {
+	var b: u8 = cc_get_byte(@enumToInt(array_idx), @enumToInt(byte_idx));
 	var new_b: u8 = cc_set_bits(bit_setting, b, bit_mask);
-	cc_put_byte(array_idx, byte_idx, new_b);
+	cc_put_byte(@enumToInt(array_idx), @enumToInt(byte_idx), new_b);
 }
 
-//==============================================================
-// Setting functions for every bit field in cc_array
-
-// Set/clear the MOX bit
-pub fn cc_mox(&mut self, mox: bool) {
-	if mox {
-		self.cc_mox_state = true;
-	} else {
-		self.cc_mox_state = false;
-	}
+// ==========================================================================
+// Module test
+test "CC out sequences" {
+	const stdout = std.io.getStdOut().writer();
+	cc_init();
+	var next = cc_out_next_seq();
+	try stdout.print("\nNext seq {any}\n", .{next});
 }
-
-//========================================
-// Configuration settings
-
-// Set the bandwidth
-pub fn cc_speed(&mut self, speed: CCOSpeed) {
-	let setting = CCO_SPEED_B[speed as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC1 as usize, setting, CCO_SPEED_M);
-}
-
-// Set the 10MHz ref source
-pub fn cc_10_ref(&mut self, reference: CCO10MhzRef) {
-	let setting = CCO_10MHZ_REF_B[reference as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC1 as usize, setting, CCO_10MHZ_REF_M);
-}
-
-// Set the 122.88MHz ref source
-pub fn cc_122_ref(&mut self, reference: CCO122MhzRef) {
-	let setting = CCO_122MHZ_REF_B[reference as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC1 as usize, setting, CCO_122MHZ_REF_M);
-}
-
-// Set the board config
-pub fn cc_board_config(&mut self, config: CCOBoardConfig) {
-	let setting = CCO_BOARD_CONFIG_B[config as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC1 as usize, setting, CCO_BOARD_CONFIG_M);
-}
-
-// Set the mic src
-pub fn cc_mic_src(&mut self, src: CCOMicSrc) {
-	let setting = CCO_MIC_SRC_B[src as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC1 as usize, setting, CCO_MIC_SRC_M);
-}
-
-// Set the alex attenuator
-pub fn cc_alex_attn(&mut self, attn: CCOAlexAttn) {
-	let setting = CCO_ALEX_ATTN_B[attn as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_ATTN_M);
-}
-
-// Set the preamp
-pub fn cc_preamp(&mut self, preamp: CCOPreamp) {
-	let setting = CCO_PREAMP_B[preamp as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC3 as usize, setting, CCO_PREAMP_M);
-}
-
-// Set the alex rx antenna
-pub fn cc_alex_rx_ant(&mut self, ant: CCORxAnt) {
-	let setting = CCO_RX_ANT_B[ant as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC3 as usize, setting, CCO_RX_ANT_M);
-}
-
-// Set the alex rx output
-pub fn cc_alex_rx_out(&mut self, out: CCOAlexRxOut) {
-	let setting = CCO_ALEX_RX_OUT_B[out as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_RX_OUT_M);
-}
-
-// Set the alex tx relay
-pub fn cc_alex_tx_rly(&mut self, rly: CCOAlexTxRly) {
-	let setting = CCO_ALEX_TX_RLY_B[rly as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_TX_RLY_M);
-}
-
-// Set duplex
-pub fn cc_duplex(&mut self, duplex: CCODuplex) {
-	let setting = CCO_DUPLEX_B[duplex as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC4 as usize, setting, CCO_DUPLEX_M);
-}
-
-// Set num rx
-pub fn cc_num_rx(&mut self, num: CCONumRx) {
-	let setting = CCO_NUM_RX_B[num as usize];
-	self.cc_update(CCOBufferIdx::BGen as usize, CCOByteIdx::CC4 as usize, setting, CCO_NUM_RX_M);
-}
-
-//========================================
-// Alex filters
-
-// Set the alex auto mode
-pub fn cc_alex_auto(&mut self, alex_auto: CCOAlexAuto) {
-	let setting = CCO_ALEX_AUTO_B[alex_auto as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC2 as usize, setting, CCO_ALEX_AUTO_M);
-}
-
-// Bypass alex HPF
-pub fn cc_alex_hpf_bypass(&mut self, bypass: CCOAlexBypass) {
-	let setting = CCO_ALEX_HPF_BYPASS_B[bypass as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC2 as usize, setting, CCO_ALEX_HPF_BYPASS_M);
-}
-
-// LPF FIlter select
-// 30/20
-pub fn cc_lpf_30_20(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_30_20_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_30_20_M);
-}
-// 60/40
-pub fn cc_lpf_60_40(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_60_40_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_60_40_M);
-}
-// 80
-pub fn cc_lpf_80(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_80_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_80_M);
-}
-// 160
-pub fn cc_lpf_160(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_160_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_160_M);
-}
-// 6
-pub fn cc_lpf_6(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_6_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_6_M);
-}
-// 12/10
-pub fn cc_lpf_12_10(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_12_10_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_12_10_M);
-}
-// 17/15
-pub fn cc_lpf_17_15(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_LPF_17_15_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC4 as usize, setting, CCO_ALEX_LPF_17_15_M);
-}
-
-// HPF filter select
-// 13
-pub fn cc_hpf_13(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_HPF_13_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_HPF_13_M);
-}
-// 20
-pub fn cc_hpf_20(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_HPF_20_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_HPF_20_M);
-}
-// 9.5
-pub fn cc_hpf_9_5(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_HPF_9_5_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_HPF_9_5_M);
-}
-// 6.5
-pub fn cc_hpf_6_5(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_HPF_6_5_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_HPF_6_5_M);
-}
-// 1.5
-pub fn cc_hpf_1_5(&mut self, setting: CCOAlexHpfLpf) {
-	let setting = CCO_ALEX_HPF_1_5_B[setting as usize];
-	self.cc_update(CCOBufferIdx::BMisc1 as usize, CCOByteIdx::CC3 as usize, setting, CCO_ALEX_HPF_1_5_M);
-}
-
-//========================================
-// Frequency setting
-
-// Slightly different from the single fields as frequency is a 4 byte field
-// The common setting function
-fn cc_common_set_freq(&mut self, buffer_idx: CCOBufferIdx, freq_in_hz: u32) {
-	let idx = buffer_idx as usize;
-	self.cc_array[idx][1] = ((freq_in_hz >> 24) & 0xff) as u8;
-	self.cc_array[idx][2] = ((freq_in_hz >> 16) & 0xff) as u8;
-	self.cc_array[idx][3] = ((freq_in_hz >> 8) & 0xff) as u8;
-	self.cc_array[idx][4] = (freq_in_hz & 0xff) as u8;
-}
-
-//There are several frequencies for RX 1/TX and RX 2,3,4
-// RX 1/TX freq
-pub fn cc_set_rx_tx_freq(&mut self, freq_in_hz: u32) {
-	self.cc_common_set_freq(CCOBufferIdx::BRx1TxF, freq_in_hz);
-	self.cc_common_set_freq(CCOBufferIdx::BRx1F, freq_in_hz);
-}
-// RX 2 freq
-pub fn cc_set_rx2_freq(&mut self, freq_in_hz: u32) {
-	self.cc_common_set_freq(CCOBufferIdx::BRx2F, freq_in_hz);
-}
-// RX 3 freq
-pub fn cc_set_rx3_freq(&mut self, freq_in_hz: u32) {
-	self.cc_common_set_freq(CCOBufferIdx::BRx3F, freq_in_hz);
-}
-// TX freq
-pub fn cc_set_tx_freq(&mut self, freq_in_hz: u32) {
-	self.cc_common_set_freq(CCOBufferIdx::BRx1TxF, freq_in_hz);
-}
-
-//========================================
-// Set sensible initialisation values
-pub fn cc_init(&mut self) {
-	self.cc_mox(false);
-	self.cc_speed(CCOSpeed::S48kHz);
-	self.cc_10_ref(CCO10MhzRef::R10MHzMerc);
-	self.cc_122_ref(CCO122MhzRef::R122MHzMerc);
-	self.cc_board_config(CCOBoardConfig::BoardBoth);
-	self.cc_mic_src(CCOMicSrc::MicPen);
-	self.cc_alex_attn(CCOAlexAttn::Attn0db);
-	self.cc_preamp(CCOPreamp::PreAmpOff);
-	self.cc_alex_rx_ant(CCORxAnt::RxAntNone);
-	self.cc_alex_rx_out(CCOAlexRxOut::RxOutOff );
-	self.cc_alex_tx_rly(CCOAlexTxRly::TxRlyTx1);
-	self.cc_duplex(CCODuplex::DuplexOff);
-	self.cc_num_rx(CCONumRx::NumRx1);
-	self.cc_alex_auto(CCOAlexAuto::AlexAuto);
-	self.cc_set_rx_tx_freq(7150000);
-	self.cc_set_tx_freq(7150000);
-}
-
