@@ -28,7 +28,7 @@ const std = @import("std");
 const expect = std.testing.expect;
 
 const cc_out_def = struct {
-    usingnamespace @import("cc_out_defs.zig");
+	usingnamespace @import("../common/cc_out_defs.zig");
 };
 
 //========================================================================
@@ -184,7 +184,7 @@ pub fn cc_out_next_seq() [5]u8 {
 	}
 
 	// Return a copy of the current index array
-	// How to take a copy
+	// Must return a copy as seems to return a mutable ref
 	return cc_el;
 }
 
@@ -439,9 +439,12 @@ fn cc_update(array_idx: CCOBufferIdx, byte_idx: CCOByteIdx, bit_setting: u8, bit
 
 // ==========================================================================
 // Module test
+// Invoke as "zig test --main-pkg-path .. cc_out.zig"
 test "CC out sequences" {
 	const stdout = std.io.getStdOut().writer();
 	cc_init();
-	var next = cc_out_next_seq();
-	try stdout.print("\nNext seq {any}\n", .{next});
+	for (0..7) |_| {
+		var next = cc_out_next_seq();
+		try stdout.print("\nNext seq {any}\n", .{next});
+	}
 }
