@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\amd.c" />
+    <ClCompile Include="src\ammod.c" />
+    <ClCompile Include="src\amsq.c" />
+    <ClCompile Include="src\analyzer.c" />
+    <ClCompile Include="src\anf.c" />
+    <ClCompile Include="src\anr.c" />
+    <ClCompile Include="src\bandpass.c" />
+    <ClCompile Include="src\calcc.c" />
+    <ClCompile Include="src\cblock.c" />
+    <ClCompile Include="src\channel.c" />
+    <ClCompile Include="src\compress.c" />
+    <ClCompile Include="src\delay.c" />
+    <ClCompile Include="src\div.c" />
+    <ClCompile Include="src\eer.c" />
+    <ClCompile Include="src\emph.c" />
+    <ClCompile Include="src\eq.c" />
+    <ClCompile Include="src\fcurve.c" />
+    <ClCompile Include="src\fir.c" />
+    <ClCompile Include="src\fmd.c" />
+    <ClCompile Include="src\fmmod.c" />
+    <ClCompile Include="src\fmsq.c" />
+    <ClCompile Include="src\gain.c" />
+    <ClCompile Include="src\gen.c" />
+    <ClCompile Include="src\iir.c" />
+    <ClCompile Include="src\iobuffs.c" />
+    <ClCompile Include="src\iqc.c" />
+    <ClCompile Include="src\main.c" />
+    <ClCompile Include="src\meter.c" />
+    <ClCompile Include="src\meterlog10.c" />
+    <ClCompile Include="src\nob.c" />
+    <ClCompile Include="src\patchpanel.c" />
+    <ClCompile Include="src\resample.c" />
+    <ClCompile Include="src\RXA.c" />
+    <ClCompile Include="src\sender.c" />
+    <ClCompile Include="src\shift.c" />
+    <ClCompile Include="src\siphon.c" />
+    <ClCompile Include="src\slew.c" />
+    <ClCompile Include="src\TXA.c" />
+    <ClCompile Include="src\utilities.c" />
+    <ClCompile Include="src\wcpAGC.c" />
+    <ClCompile Include="src\wisdom.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\amd.h" />
+    <ClInclude Include="src\ammod.h" />
+    <ClInclude Include="src\amsq.h" />
+    <ClInclude Include="src\analyzer.h" />
+    <ClInclude Include="src\anf.h" />
+    <ClInclude Include="src\anr.h" />
+    <ClInclude Include="src\bandpass.h" />
+    <ClInclude Include="src\calcc.h" />
+    <ClInclude Include="src\cblock.h" />
+    <ClInclude Include="src\channel.h" />
+    <ClInclude Include="src\comm.h" />
+    <ClInclude Include="src\compress.h" />
+    <ClInclude Include="src\delay.h" />
+    <ClInclude Include="src\div.h" />
+    <ClInclude Include="src\eer.h" />
+    <ClInclude Include="src\emph.h" />
+    <ClInclude Include="src\eq.h" />
+    <ClInclude Include="src\fcurve.h" />
+    <ClInclude Include="src\fftw3.h" />
+    <ClInclude Include="src\fir.h" />
+    <ClInclude Include="src\fmd.h" />
+    <ClInclude Include="src\fmmod.h" />
+    <ClInclude Include="src\fmsq.h" />
+    <ClInclude Include="src\gain.h" />
+    <ClInclude Include="src\gen.h" />
+    <ClInclude Include="src\iir.h" />
+    <ClInclude Include="src\iobuffs.h" />
+    <ClInclude Include="src\iqc.h" />
+    <ClInclude Include="src\main.h" />
+    <ClInclude Include="src\meter.h" />
+    <ClInclude Include="src\meterlog10.h" />
+    <ClInclude Include="src\nob.h" />
+    <ClInclude Include="src\patchpanel.h" />
+    <ClInclude Include="src\resample.h" />
+    <ClInclude Include="src\RXA.h" />
+    <ClInclude Include="src\sender.h" />
+    <ClInclude Include="src\shift.h" />
+    <ClInclude Include="src\siphon.h" />
+    <ClInclude Include="src\slew.h" />
+    <ClInclude Include="src\TXA.h" />
+    <ClInclude Include="src\utilities.h" />
+    <ClInclude Include="src\wcpAGC.h" />
+    <ClInclude Include="src\wisdom.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{FA7BCEBC-BAE5-4132-898F-3AA3ED1DE000}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>wdspwin</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>E:\Projects\SDRLibE\libs\fftw\x64\\libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>E:\Projects\SDRLibE\libs\fftw\x64\\libfftw3-3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
