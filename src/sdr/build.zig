@@ -36,6 +36,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    main_tests.linkSystemLibrary("c");
     main_tests.linkSystemLibrary("wdsp_lib/x64/Release/wdsp_win.lib");
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
