@@ -269,5 +269,8 @@
     <ClInclude Include="src\wisdom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\port.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

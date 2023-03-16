@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const c = @cImport({
+    @cInclude("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src/port.h");
     @cInclude("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src/wisdom.h");
 });
 

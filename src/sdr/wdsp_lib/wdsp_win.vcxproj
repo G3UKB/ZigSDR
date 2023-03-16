@@ -95,6 +95,7 @@
     <ClInclude Include="src\meterlog10.h" />
     <ClInclude Include="src\nob.h" />
     <ClInclude Include="src\patchpanel.h" />
+    <ClInclude Include="src\port.h" />
     <ClInclude Include="src\resample.h" />
     <ClInclude Include="src\RXA.h" />
     <ClInclude Include="src\sender.h" />
