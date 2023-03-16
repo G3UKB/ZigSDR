@@ -27,6 +27,6 @@ warren@wpratt.com
 #ifndef _wisdom_h
 #define _wisdom_h
 
-void WDSPwisdom (char* directory);
+void WDSPwisdom (const char* directory);
 
 #endif

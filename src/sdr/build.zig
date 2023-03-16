@@ -15,7 +15,7 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addStaticLibrary(.{
+    var lib = b.addStaticLibrary(.{
         .name = "sdr",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
@@ -23,7 +23,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    lib.addIncludePath("wdsp_lib/src");
+   
+    //lib.addLibraryPath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/x64/Release");
+    //lib.addIncludePath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src");
+    //lib.linkSystemLibrary("wdsp_win");
 
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
@@ -36,8 +39,10 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    main_tests.linkSystemLibrary("c");
-    main_tests.linkSystemLibrary("wdsp_lib/x64/Release/wdsp_win.lib");
+    // main_tests.linkSystemLibrary("c");
+    main_tests.addLibraryPath("E:/Projects/RustSDR/trunk/wdsp_win/x64/Release");
+    main_tests.addIncludePath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src");
+    main_tests.linkSystemLibrary("wdsp_win");
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build test`

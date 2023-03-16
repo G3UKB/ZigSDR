@@ -29,7 +29,7 @@ warren@wpratt.com
 #include "wisdom.h"
 
 //PORT
-void WDSPwisdom (char* directory)
+void WDSPwisdom (const char* directory)
 {
 	fftw_plan tplan;
 	int psize;
