@@ -1,7 +1,8 @@
 const std = @import("std");
 
 const c = @cImport({
-    @cInclude("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src/wisdom.h");
+    @cInclude("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src/comm.h;E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src/wisdom.h");
+    //@cInclude("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src/wisdom.h");
 });
 
 /// Initialize wdsp_lib. Call before other wdsp_lib functions.

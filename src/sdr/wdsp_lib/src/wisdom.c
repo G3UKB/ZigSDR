@@ -28,7 +28,7 @@ warren@wpratt.com
 #include "comm.h"
 #include "wisdom.h"
 
-//PORT
+PORT
 void WDSPwisdom (const char* directory)
 {
 	fftw_plan tplan;

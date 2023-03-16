@@ -27,6 +27,6 @@ warren@wpratt.com
 #ifndef _wisdom_h
 #define _wisdom_h
 
-void WDSPwisdom (const char* directory);
+__declspec(dllexport) void WDSPwisdom (const char* directory);
 
 #endif
