@@ -23,12 +23,12 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
-        .template = "capy-template",
+        //.template = "capy-template",
     });
 
     //const mode = b.standardReleaseOptions();
 
-    //const exe = b.addExecutable("capy-template, src/main.zig");
+    //const exe = b.addExecutable("capy-template", "src/main.zig");
     //exe.target = target;
     //exe.setBuildMode(mode);
     //exe.optimize = optimize;
@@ -68,7 +68,7 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
-        .template = "capy-template",
+        //.template = "capy-template",
     });
     exe_tests.addLibraryPath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/x64/Release");
     exe_tests.addIncludePath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src");
