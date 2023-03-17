@@ -1,0 +1,7 @@
+id: a8c37gpwggyt4qu7anp2ykds5sefr447rapvpfcnv6k7asl8
+name: ZigSDR
+license: none
+description: SDR Zig Console
+build_dependencies: 
+  - src: git https://github.com/zenith391/capy
+root_dependencies:
