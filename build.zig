@@ -1,9 +1,10 @@
 const std = @import("std");
+const deps = @import("deps.zig");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -22,11 +23,20 @@ pub fn build(b: *std.Build) void {
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
+        .template = "capy-template",
     });
+
+    //const mode = b.standardReleaseOptions();
+
+    //const exe = b.addExecutable("capy-template, src/main.zig");
+    //exe.target = target;
+    //exe.setBuildMode(mode);
+    //exe.optimize = optimize;
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
+    try deps.imports.capy.install(exe, .{});
     exe.install();
 
     // This *creates* a RunStep in the build graph, to be executed when another
@@ -58,6 +68,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
+        .template = "capy-template",
     });
     exe_tests.addLibraryPath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/x64/Release");
     exe_tests.addIncludePath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src");

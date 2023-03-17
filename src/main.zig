@@ -27,12 +27,20 @@
 const std = @import("std");
 const expect = std.testing.expect;
 
+const capy = @import("capy");
+pub usingnamespace capy.cross_platform;
+
 const wdsp = struct {
 	usingnamespace @import("sdr/wdsp.zig");
 };
 
 pub fn run() !void {
     try wdsp.init();
+    var window = try capy.Window.init();
+
+    window.resize(800, 600);
+    window.show();
+    capy.runEventLoop();
 }
 
 test "ZigSDR" {
