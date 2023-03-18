@@ -17,21 +17,16 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
-        .name = "capy-template",
+        .name = "ZigSDR",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
-        //.template = "capy-template",
     });
-
-    //const mode = b.standardReleaseOptions();
-
-    //const exe = b.addExecutable("capy-template", "src/main.zig");
-    //exe.target = target;
-    //exe.setBuildMode(mode);
-    //exe.optimize = optimize;
+    exe.addLibraryPath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/x64/Release");
+    exe.addIncludePath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src");
+    exe.linkSystemLibrary("wdsp_win");
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
@@ -64,11 +59,9 @@ pub fn build(b: *std.Build) !void {
 
     // Creates a step for unit testing.
     const exe_tests = b.addTest(.{
-        //.root_source_file = .{ .path = "src/sdr/src/wdsp.zig" },
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
-        //.template = "capy-template",
     });
     exe_tests.addLibraryPath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/x64/Release");
     exe_tests.addIncludePath("E:/Projects/ZigSDR/trunk/src/sdr/wdsp_lib/src");

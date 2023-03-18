@@ -34,13 +34,19 @@ const wdsp = struct {
 	usingnamespace @import("sdr/wdsp.zig");
 };
 
-pub fn run() !void {
+pub fn main() !void {
+    const stdout = std.io.getStdOut().writer();
+    try stdout.print("\nMain..", .{});
     try wdsp.init();
     var window = try capy.Window.init();
 
     window.resize(800, 600);
     window.show();
     capy.runEventLoop();
+}
+
+pub fn run() !void {
+    try wdsp.init();
 }
 
 test "ZigSDR" {
