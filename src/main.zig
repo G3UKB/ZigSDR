@@ -33,16 +33,21 @@ pub usingnamespace capy.cross_platform;
 const wdsp = struct {
 	usingnamespace @import("sdr/wdsp.zig");
 };
+const ui = struct {
+	usingnamespace @import("ui/main_window.zig");
+};
 
 pub fn main() !void {
-    const stdout = std.io.getStdOut().writer();
-    try stdout.print("\nMain..", .{});
-    try wdsp.init();
-    var window = try capy.Window.init();
 
-    window.resize(800, 600);
-    window.show();
-    capy.runEventLoop();
+    // Initialise WSDP
+    try wdsp.init();
+
+    // Run UI
+    const stdout = std.io.getStdOut().writer();
+    try stdout.print("\nRun", .{});
+    try ui.build();
+    try stdout.print("\nClose", .{});
+    //try ui.run();
 }
 
 pub fn run() !void {
