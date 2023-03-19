@@ -37,8 +37,9 @@ const wdsp = struct {
 };
 
 pub fn clicked(_: *anyopaque) !void {
-    const stdout = std.io.getStdOut().writer();
-    try stdout.print("Clicked {s}\n", .{"me"});
+    //const stdout = std.io.getStdOut().writer();
+    //try stdout.print("Clicked {s}\n", .{"me"});
+    std.log.info("Clicked", .{});
 }
 
 pub fn build() !void {

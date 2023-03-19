@@ -45,10 +45,11 @@ pub fn main() !void {
     try wdsp.init();
 
     // Run UI
-    const stdout = std.io.getStdOut().writer();
-    try stdout.print("\nRun\n", .{});
+    //const stdout = std.io.getStdOut().writer();
+    //try stdout.print("\nRun\n", .{});
+    std.log.info("Build", .{});
     try ui.build();
-    try stdout.print("\nClose\n", .{});
+    //try stdout.print("\nClose\n", .{});
     //try ui.run();
 }
 
