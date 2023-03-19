@@ -24,6 +24,8 @@
 // bob@bobcowdery.plus.com
 // 
 
+pub const enable_dev_tools = false;
+
 const std = @import("std");
 const expect = std.testing.expect;
 
@@ -44,9 +46,9 @@ pub fn main() !void {
 
     // Run UI
     const stdout = std.io.getStdOut().writer();
-    try stdout.print("\nRun", .{});
+    try stdout.print("\nRun\n", .{});
     try ui.build();
-    try stdout.print("\nClose", .{});
+    try stdout.print("\nClose\n", .{});
     //try ui.run();
 }
 
@@ -56,6 +58,6 @@ pub fn run() !void {
 
 test "ZigSDR" {
     const stdout = std.io.getStdOut().writer();
-    try stdout.print("\nRunning tests..", .{});
+    try stdout.print("\nRunning tests..\n", .{});
     try run();
 }
