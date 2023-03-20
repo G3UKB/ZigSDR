@@ -29,45 +29,25 @@ const expect = std.testing.expect;
 
 const capy = @import("capy");
 pub usingnamespace capy.cross_platform;
-const Allocator = std.mem.Allocator;
-var allocator: Allocator = undefined;
 
-const wdsp = struct {
-	usingnamespace @import("../sdr/wdsp.zig");
-};
+// Main window
+var window: capy.Window = undefined;
 
 pub fn clicked(_: *anyopaque) !void {
-    //const stdout = std.io.getStdOut().writer();
-    //try stdout.print("Clicked {s}\n", .{"me"});
     std.log.info("Clicked", .{});
 }
 
 pub fn build() !void {
     try capy.backend.init();
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer if (comptime !@import("builtin").target.isWasm()) {
-        _ = gpa.deinit();
-    };
-
-    if (comptime !@import("builtin").target.isWasm()) {
-        allocator = gpa.allocator();
-    } else {
-        allocator = std.heap.page_allocator;
-    }
-
-    try capy.init();
-    defer capy.deinit();
     
-    var window = try capy.Window.init();
-    try window.set(
+    window = try capy.Window.init();
+    try window.set(capy.Column(.{ .expand = .Fill, .spacing = 10 }, .{
         capy.Button(.{ .label = "A Button", .onclick = clicked })
-    );
+    }));
 
     window.resize(300, 200);
+    window.setTitle("ZigSDR");
     window.show();
-    defer window.deinit();
-    capy.runEventLoop();
-    
 }
 
 pub fn run() !void {
