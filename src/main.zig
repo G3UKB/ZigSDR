@@ -32,6 +32,9 @@ const expect = std.testing.expect;
 const capy = @import("capy");
 pub usingnamespace capy.cross_platform;
 
+const network = struct {
+    usingnamespace @import("net/network.zig");
+};
 const net = struct {
     usingnamespace @import("net/udp_socket.zig");
 };
@@ -56,8 +59,10 @@ pub fn main() !void {
     //try net.udp_revert_socket();
     //try net.udp_close_socket();
 
+    //try network.init();
     var r = try hw.do_discover();
     std.debug.print("Discover resp: {}", .{r});
+    //defer network.deinit();
 
     //try net.init();
     //defer net.deinit();

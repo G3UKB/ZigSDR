@@ -514,6 +514,7 @@ pub const Socket = struct {
     /// Same as ´receive`, but will also return the end point from which the data
     /// was received. This is only a valid operation on UDP sockets.
     pub fn receiveFrom(self: Self, data: []u8) !ReceiveFrom {
+        std.debug.print("Entered\n\n", .{});
         const recvfrom_fn = if (is_windows) windows.recvfrom else std.os.recvfrom;
         const flags = if (is_linux) std.os.linux.MSG.NOSIGNAL else 0;
 
@@ -524,6 +525,7 @@ pub const Socket = struct {
         var addr_ptr = @ptrCast(*std.os.sockaddr, &addr);
         const len = try recvfrom_fn(self.internal, data, flags | if (is_windows) 0 else 4, addr_ptr, &size);
 
+        std.debug.print("ReceiveFrom resp: {any}, {any}\n", .{ len, try EndPoint.fromSocketAddress(addr_ptr, size) });
         return ReceiveFrom{
             .numberOfBytes = len,
             .sender = try EndPoint.fromSocketAddress(addr_ptr, size),
