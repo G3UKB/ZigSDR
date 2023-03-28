@@ -29,16 +29,16 @@ const net = struct {
 };
 
 const port_number = 10000;
-var sock = undefined;
+var sock: net.Socket = undefined;
 
-fn udp_open_bc_socket() void {
+pub fn udp_open_bc_socket() !void {
 
     // Create a UDP socket
     sock = try net.Socket.create(.ipv4, .udp);
-    //defer sock.close();
+    try sock.setBroadcast(true);
 
     const incoming_endpoint = net.EndPoint{
-        .address = net.Address{ .ipv4 = net.Address.IPv4.broadcast },
+        .address = net.Address{ .ipv4 = net.Address.IPv4.any },
         .port = port_number,
     };
 
@@ -47,22 +47,14 @@ fn udp_open_bc_socket() void {
     };
 }
 
-pub fn udp_revert_socket() void {
-    const _incoming_endpoint = net.EndPoint{
-        .address = net.Address{ .ipv4 = net.Address.IPv4.any },
-        .port = port_number,
-    };
-    _ = _incoming_endpoint;
-
-    //self.sock2.set_read_timeout(Some(Duration::from_millis(100))).expect("set_read_timeout call failed");
-    // Set buffer sizes?
-    //self.sock2.set_recv_buffer_size(192000).expect("set_recv_buffer_size call failed");
-    //println!("Receiver buffer sz {:?}", self.sock2.recv_buffer_size());
-    //self.sock2.set_send_buffer_size(192000).expect("set_send_buffer_size call failed");
-    //println!("Send buffer sz {:?}", self.sock2.send_buffer_size());
+pub fn udp_revert_socket() !void {
+    try sock.setBroadcast(false);
+    try sock.setReadTimeout(100000);
+    try sock.setReadBuffSz(192000);
+    try sock.setSendBuffSz(192000);
 }
 
-pub fn close_socket() void {
+pub fn udp_close_socket() !void {
     sock.close();
 }
 

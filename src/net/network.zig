@@ -382,6 +382,16 @@ pub const Socket = struct {
         }
     }
 
+    /// Set socket read buffer size
+    pub fn setReadBuffSz(self: *Self, sz: ?u32) !void {
+        std.debug.assert(sz == null or sz.? != 0);
+        if (is_windows) {
+            try windows.setsockopt(self.internal, std.os.SOL.SOCKET, std.os.SO.RCVBUF, std.mem.asBytes(&sz));
+        } else {
+            try std.os.setsockopt(self.internal, std.os.SOL.SOCKET, std.os.SO.RCVBUF, std.mem.toBytes(sz)[0..]);
+        }
+    }
+
     /// Set socket write timeout in microseconds
     pub fn setWriteTimeout(self: *Self, write: ?u32) !void {
         std.debug.assert(write == null or write.? != 0);
@@ -394,6 +404,16 @@ pub const Socket = struct {
             write_timeout.tv_sec = @intCast(@TypeOf(write_timeout.tv_sec), @divTrunc(micros, 1000000));
             write_timeout.tv_usec = @intCast(@TypeOf(write_timeout.tv_usec), @mod(micros, 1000000));
             try std.os.setsockopt(self.internal, std.os.SOL.SOCKET, std.os.SO.SNDTIMEO, std.mem.toBytes(write_timeout)[0..]);
+        }
+    }
+
+    /// Set socket send buffer size
+    pub fn setSendBuffSz(self: *Self, sz: ?u32) !void {
+        std.debug.assert(sz == null or sz.? != 0);
+        if (is_windows) {
+            try windows.setsockopt(self.internal, std.os.SOL.SOCKET, std.os.SO.SNDBUF, std.mem.asBytes(&sz));
+        } else {
+            try std.os.setsockopt(self.internal, std.os.SOL.SOCKET, std.os.SO.SNDBUF, std.mem.toBytes(sz)[0..]);
         }
     }
 

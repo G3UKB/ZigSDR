@@ -49,9 +49,9 @@ pub fn main() !void {
     try wdsp.init();
 
     // Try net
-    net.udp_open_bc_socket();
-    net.udp_revert_socket();
-    net.close_socket();
+    try net.udp_open_bc_socket();
+    try net.udp_revert_socket();
+    try net.udp_close_socket();
 
     //try net.init();
     //defer net.deinit();
