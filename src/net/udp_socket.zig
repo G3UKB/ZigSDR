@@ -36,6 +36,7 @@ pub fn udp_open_bc_socket() !void {
     // Create a UDP socket
     sock = try net.Socket.create(.ipv4, .udp);
     try sock.setBroadcast(true);
+    try sock.setReadTimeout(100000);
 
     const incoming_endpoint = net.EndPoint{
         .address = net.Address{ .ipv4 = net.Address.IPv4.any },
