@@ -509,7 +509,7 @@ pub const Socket = struct {
         return try recvfrom_fn(self.internal, data, flags, null, null);
     }
 
-    const ReceiveFrom = struct { numberOfBytes: usize, sender: EndPoint };
+    pub const ReceiveFrom = struct { numberOfBytes: usize, sender: EndPoint };
 
     /// Same as ´receive`, but will also return the end point from which the data
     /// was received. This is only a valid operation on UDP sockets.

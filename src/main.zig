@@ -35,6 +35,9 @@ pub usingnamespace capy.cross_platform;
 const net = struct {
     usingnamespace @import("net/udp_socket.zig");
 };
+const hw = struct {
+    usingnamespace @import("net/hw_control.zig");
+};
 const wdsp = struct {
     usingnamespace @import("sdr/wdsp.zig");
 };
@@ -49,9 +52,12 @@ pub fn main() !void {
     try wdsp.init();
 
     // Try net
-    try net.udp_open_bc_socket();
-    try net.udp_revert_socket();
-    try net.udp_close_socket();
+    //try net.udp_open_bc_socket();
+    //try net.udp_revert_socket();
+    //try net.udp_close_socket();
+
+    var r = try hw.do_discover();
+    std.debug.print("Discover resp: {}", .{r});
 
     //try net.init();
     //defer net.deinit();
