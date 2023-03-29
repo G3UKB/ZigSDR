@@ -51,18 +51,21 @@ const ui = struct {
 pub fn main() !void {
     std.log.info("ZigSDR running...", .{});
 
+    var hwAddr: net.EndPoint = undefined;
+
     // Initialise WSDP
     try wdsp.init();
 
     // Initialise net
     try net.init();
     defer net.deinit();
+    //std.debug.print("Endpoints: {}\n", .{net.getEndpointList()});
 
     // Open a broadcast socket
     var s: net.Socket = try udp.udp_open_bc_socket();
     // Run discover protocol
-    var r = try hw.Hardware.do_discover(&s);
-    std.debug.print("Discover resp: {}\n", .{r});
+    hwAddr = try hw.Hardware.do_discover(&s);
+    std.debug.print("Device addr: {}\n", .{hwAddr});
     // Revert socket
     try udp.udp_revert_socket();
 

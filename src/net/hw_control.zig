@@ -35,7 +35,7 @@ pub const Hardware = struct {
     var hwAddr: net.EndPoint = undefined;
 
     // Run discover protocol
-    pub fn do_discover(sock: *net.Socket) !void {
+    pub fn do_discover(sock: *net.Socket) !net.EndPoint {
 
         // Broadcast addr
         const bcAddr = net.EndPoint{
@@ -62,7 +62,8 @@ pub const Hardware = struct {
         std.debug.print("Discover sent {} bytes\n", .{e});
 
         // Read response
-        try read_response(sock);
+        hwAddr = try read_response(sock);
+        return hwAddr;
     }
 
     // Start hardware streaming
@@ -85,7 +86,7 @@ pub const Hardware = struct {
     }
 
     // Read responses
-    fn read_response(sock: *net.Socket) !void {
+    fn read_response(sock: *net.Socket) !net.EndPoint {
         var response: net.Socket.ReceiveFrom = undefined;
         var count: u32 = 2;
         var data = std.mem.zeroes([63]u8);
@@ -106,5 +107,6 @@ pub const Hardware = struct {
             retry = false;
         }
         std.debug.print("Discover resp: {any}, {any}\n", .{ response.numberOfBytes, response.sender });
+        return response.sender;
     }
 };
