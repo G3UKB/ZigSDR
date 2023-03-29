@@ -59,10 +59,10 @@ pub fn main() !void {
     defer net.deinit();
 
     // Open a broadcast socket
-    var s = try udp.udp_open_bc_socket();
+    var s: net.Socket = try udp.udp_open_bc_socket();
     // Run discover protocol
-    var r = try hw.Hardware.do_discover(s);
-    std.debug.print("Discover resp: {}", .{r});
+    var r = try hw.Hardware.do_discover(&s);
+    std.debug.print("Discover resp: {}\n", .{r});
     // Revert socket
     try udp.udp_revert_socket();
 
@@ -71,7 +71,7 @@ pub fn main() !void {
     try ui.run();
 
     // Close everything
-    try net.udp_close_socket();
+    try udp.udp_close_socket();
 }
 
 pub fn run() !void {

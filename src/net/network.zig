@@ -515,7 +515,6 @@ pub const Socket = struct {
     /// Same as ´receive`, but will also return the end point from which the data
     /// was received. This is only a valid operation on UDP sockets.
     pub fn receiveFrom(self: Self, data: []u8) !ReceiveFrom {
-        std.debug.print("Entered\n\n", .{});
         const recvfrom_fn = if (is_windows) windows.recvfrom else std.os.recvfrom;
         const flags = if (is_linux) std.os.linux.MSG.NOSIGNAL else 0;
 
@@ -526,7 +525,6 @@ pub const Socket = struct {
         var addr_ptr = @ptrCast(*std.os.sockaddr, &addr);
         const len = try recvfrom_fn(self.internal, data, flags | if (is_windows) 0 else 4, addr_ptr, &size);
 
-        std.debug.print("ReceiveFrom resp: {any}, {any}\n", .{ len, try EndPoint.fromSocketAddress(addr_ptr, size) });
         return ReceiveFrom{
             .numberOfBytes = len,
             .sender = try EndPoint.fromSocketAddress(addr_ptr, size),
@@ -538,7 +536,6 @@ pub const Socket = struct {
     pub fn sendTo(self: Self, receiver: EndPoint, data: []const u8) SendError!usize {
         const sendto_fn = if (is_windows) windows.sendto else std.os.sendto;
         const flags = if (is_windows or is_bsd) 0 else std.os.linux.MSG.NOSIGNAL;
-        std.debug.print("Addr in sendTo(): {any}, {any}\n", .{ receiver, receiver.toSocketAddress() });
         return switch (receiver.toSocketAddress()) {
             .ipv4 => |sockaddr| try sendto_fn(self.internal, data, flags, @ptrCast(*const std.os.sockaddr, &sockaddr), @sizeOf(@TypeOf(sockaddr))),
             .ipv6 => |sockaddr| try sendto_fn(self.internal, data, flags, @ptrCast(*const std.os.sockaddr, &sockaddr), @sizeOf(@TypeOf(sockaddr))),
@@ -1333,7 +1330,6 @@ const windows = struct {
         dest_addr: ?*const std.os.sockaddr,
         addrlen: std.os.socklen_t,
     ) Socket.SendError!usize {
-        std.debug.print("Addr in sendto(): {any}\n", .{dest_addr});
         if (std.io.is_async and std.event.Loop.instance != null) {
             const loop = std.event.Loop.instance.?;
 
@@ -1418,7 +1414,6 @@ const windows = struct {
         src_addr: ?*std.os.sockaddr,
         addrlen: ?*std.os.socklen_t,
     ) std.os.RecvFromError!usize {
-        std.debug.print("recvfrom\n", .{});
         if (std.io.is_async and std.event.Loop.instance != null) {
             const loop = std.event.Loop.instance.?;
 
@@ -1471,7 +1466,6 @@ const windows = struct {
 
         while (true) {
             const result = funcs.recvfrom(sock, buf.ptr, @intCast(c_int, buf.len), @intCast(c_int, flags), src_addr, addrlen);
-            std.debug.print("result {any},{any},{any},{any}\n", .{ result, sock, buf.len, src_addr });
             if (result == ws2_32.SOCKET_ERROR) {
                 return switch (ws2_32.WSAGetLastError()) {
                     .WSAEFAULT => unreachable,
