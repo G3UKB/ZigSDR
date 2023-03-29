@@ -61,6 +61,10 @@ pub fn main() !void {
 
     //try network.init();
     var r = try hw.do_discover();
+
+    //var thread = try std.Thread.spawn(.{}, hw.do_discover, .{});
+    //_ = thread;
+
     std.debug.print("Discover resp: {}", .{r});
     //defer network.deinit();
 

@@ -43,6 +43,7 @@ pub const Address = union(AddressFamily) {
         pub const broadcast = IPv4.init(255, 255, 255, 255);
         pub const loopback = IPv4.init(127, 0, 0, 1);
         pub const multicast_all = IPv4.init(224, 0, 0, 1);
+        pub const mine = IPv4.init(192, 168, 1, 10);
 
         value: [4]u8,
 
@@ -537,7 +538,7 @@ pub const Socket = struct {
     pub fn sendTo(self: Self, receiver: EndPoint, data: []const u8) SendError!usize {
         const sendto_fn = if (is_windows) windows.sendto else std.os.sendto;
         const flags = if (is_windows or is_bsd) 0 else std.os.linux.MSG.NOSIGNAL;
-
+        std.debug.print("Addr in sendTo(): {any}, {any}\n", .{ receiver, receiver.toSocketAddress() });
         return switch (receiver.toSocketAddress()) {
             .ipv4 => |sockaddr| try sendto_fn(self.internal, data, flags, @ptrCast(*const std.os.sockaddr, &sockaddr), @sizeOf(@TypeOf(sockaddr))),
             .ipv6 => |sockaddr| try sendto_fn(self.internal, data, flags, @ptrCast(*const std.os.sockaddr, &sockaddr), @sizeOf(@TypeOf(sockaddr))),
@@ -1332,6 +1333,7 @@ const windows = struct {
         dest_addr: ?*const std.os.sockaddr,
         addrlen: std.os.socklen_t,
     ) Socket.SendError!usize {
+        std.debug.print("Addr in sendto(): {any}\n", .{dest_addr});
         if (std.io.is_async and std.event.Loop.instance != null) {
             const loop = std.event.Loop.instance.?;
 
@@ -1416,6 +1418,7 @@ const windows = struct {
         src_addr: ?*std.os.sockaddr,
         addrlen: ?*std.os.socklen_t,
     ) std.os.RecvFromError!usize {
+        std.debug.print("recvfrom\n", .{});
         if (std.io.is_async and std.event.Loop.instance != null) {
             const loop = std.event.Loop.instance.?;
 
@@ -1468,6 +1471,7 @@ const windows = struct {
 
         while (true) {
             const result = funcs.recvfrom(sock, buf.ptr, @intCast(c_int, buf.len), @intCast(c_int, flags), src_addr, addrlen);
+            std.debug.print("result {any},{any},{any},{any}\n", .{ result, sock, buf.len, src_addr });
             if (result == ws2_32.SOCKET_ERROR) {
                 return switch (ws2_32.WSAGetLastError()) {
                     .WSAEFAULT => unreachable,
