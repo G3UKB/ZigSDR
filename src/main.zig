@@ -32,10 +32,10 @@ const expect = std.testing.expect;
 const capy = @import("capy");
 pub usingnamespace capy.cross_platform;
 
-const network = struct {
+const net = struct {
     usingnamespace @import("net/network.zig");
 };
-const net = struct {
+const udp = struct {
     usingnamespace @import("net/udp_socket.zig");
 };
 const hw = struct {
@@ -54,35 +54,24 @@ pub fn main() !void {
     // Initialise WSDP
     try wdsp.init();
 
-    // Try net
-    //try net.udp_open_bc_socket();
-    //try net.udp_revert_socket();
-    //try net.udp_close_socket();
+    // Initialise net
+    try net.init();
+    defer net.deinit();
 
-    //try network.init();
-    var r = try hw.do_discover();
-
-    //var thread = try std.Thread.spawn(.{}, hw.do_discover, .{});
-    //_ = thread;
-
+    // Open a broadcast socket
+    var s = try udp.udp_open_bc_socket();
+    // Run discover protocol
+    var r = try hw.Hardware.do_discover(s);
     std.debug.print("Discover resp: {}", .{r});
-    //defer network.deinit();
-
-    //try net.init();
-    //defer net.deinit();
-
-    //const sock = try net.connectToHost(std.heap.page_allocator, "tcpbin.com", 4242, .tcp);
-    //defer sock.close();
-
-    //const msg = "Hi from socket!\n";
-    //try sock.writer().writeAll(msg);
-
-    //var buf: [128]u8 = undefined;
-    //std.debug.print("Echo: {s}", .{buf[0..try sock.reader().readAll(buf[0..msg.len])]});
+    // Revert socket
+    try udp.udp_revert_socket();
 
     // Run UI
     try ui.build();
     try ui.run();
+
+    // Close everything
+    try net.udp_close_socket();
 }
 
 pub fn run() !void {

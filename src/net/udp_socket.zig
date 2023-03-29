@@ -31,21 +31,14 @@ const net = struct {
 const port_number = 10000;
 var sock: net.Socket = undefined;
 
-pub fn udp_open_bc_socket() !void {
+pub fn udp_open_bc_socket() !net.Socket {
 
     // Create a UDP socket
     sock = try net.Socket.create(.ipv4, .udp);
     try sock.setBroadcast(true);
     try sock.setReadTimeout(100000);
 
-    const incoming_endpoint = net.EndPoint{
-        .address = net.Address{ .ipv4 = net.Address.IPv4.any },
-        .port = port_number,
-    };
-
-    sock.bind(incoming_endpoint) catch |err| {
-        std.debug.print("failed to bind to {}:{}\n", .{ incoming_endpoint, err });
-    };
+    return sock;
 }
 
 pub fn udp_revert_socket() !void {
