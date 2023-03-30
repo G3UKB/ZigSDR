@@ -38,6 +38,9 @@ const net = struct {
 const udp = struct {
     usingnamespace @import("net/udp_socket.zig");
 };
+const reader = struct {
+    usingnamespace @import("net/udp_reader.zig");
+};
 const hw = struct {
     usingnamespace @import("net/hw_control.zig");
 };
@@ -68,6 +71,13 @@ pub fn main() !void {
     std.debug.print("Device addr: {}\n", .{hwAddr});
     // Revert socket
     try udp.udp_revert_socket();
+
+    // Run reader thread
+    //try reader.reader_start();
+    var handle: std.Thread.Handle = reader.reader_start() catch |err| {
+        std.debug.print("Spawn failed: {}\n", .{err});
+    };
+    _ = handle;
 
     // Run UI
     try ui.build();

@@ -29,13 +29,22 @@ const net = struct {
     usingnamespace @import("network.zig");
 };
 
-pub const Reader = struct {};
+pub const Reader = struct {
+    fn loop() !void {
+        std.debug.print("Reader loop\n", .{});
+    }
+};
 
-fn reader_thrd() !void {}
+fn reader_thrd() !void {
+    std.debug.print("Reader thread\n", .{});
+    try Reader.loop();
+}
 
 //==================================================================================
 // Thread startup
-pub fn reader_start() std.SpawnError!std.Thread {
-    var handle = try std.spawn(.{}, .reader_thrd, .{});
+pub fn reader_start() std.Thread.SpawnError!std.Thread.Handle {
+    //pub fn reader_start() !void {
+    var handle = try std.Thread.spawn(.{}, reader_thrd, .{});
+    //_ = handle;
     return handle;
 }
