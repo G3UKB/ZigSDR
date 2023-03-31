@@ -74,14 +74,18 @@ pub fn main() !void {
     try udp.udp_revert_socket();
 
     // Run reader thread
+    //const reader_ch = std.event.Channel(u32);
+    //readerThrd = try reader.reader_start(reader_ch);
     readerThrd = try reader.reader_start();
 
     // Run UI
     try ui.build();
     try ui.run();
+    //std.time.sleep(1000000000);
 
     // Close everything
     try udp.udp_close_socket();
+    //reader_ch.put(1);
     readerThrd.join();
 }
 

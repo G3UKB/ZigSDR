@@ -31,17 +31,27 @@ const net = struct {
 
 pub const Reader = struct {
     fn loop() !void {
-        std.debug.print("Reader loop\n", .{});
+        //fn loop(ch: std.event.Channel(u32)) !void {
+        //    while (ch.get_count == 0) {
+        //        std.time.sleep(100000000);
+        //    }
+        //    std.debug.print("Reader loop exiting\n", .{});
+        //}
+        std.debug.print("Reader loop \n", .{});
     }
 };
 
+//fn reader_thrd(ch: std.event.Channel(u32)) !void {
 fn reader_thrd() !void {
     std.debug.print("Reader thread\n", .{});
+    //try Reader.loop(ch);
     try Reader.loop();
 }
 
 //==================================================================================
 // Thread startup
+//pub fn reader_start(ch: std.event.Channel(u32)) std.Thread.SpawnError!std.Thread {
 pub fn reader_start() std.Thread.SpawnError!std.Thread {
+    //return try std.Thread.spawn(.{}, reader_thrd, .{ch});
     return try std.Thread.spawn(.{}, reader_thrd, .{});
 }

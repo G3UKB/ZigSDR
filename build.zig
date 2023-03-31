@@ -1,4 +1,5 @@
 const std = @import("std");
+const Builder = @import("std").build.Builder;
 const deps = @import("deps.zig");
 
 const PATH_TO_CAPY = ".zigmod/deps/git/github.com/capy-ui/capy/";
@@ -6,7 +7,7 @@ const PATH_TO_CAPY = ".zigmod/deps/git/github.com/capy-ui/capy/";
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
-pub fn build(b: *std.Build) !void {
+pub fn build(b: *Builder) !void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -18,6 +19,7 @@ pub fn build(b: *std.Build) !void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    //const exe = b.addExecutable("ZigSDR", "src/main.zig");
     const exe = b.addExecutable(.{
         .name = "ZigSDR",
         // In this case the main source file is merely a path, however, in more
