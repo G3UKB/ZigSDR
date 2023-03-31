@@ -54,6 +54,7 @@ const ui = struct {
 pub fn main() !void {
     std.log.info("ZigSDR running...", .{});
 
+    var sock: net.Socket = undefined;
     var hwAddr: net.EndPoint = undefined;
     var readerThrd: std.Thread = undefined;
 
@@ -66,17 +67,22 @@ pub fn main() !void {
     //std.debug.print("Endpoints: {}\n", .{net.getEndpointList()});
 
     // Open a broadcast socket
-    var s: net.Socket = try udp.udp_open_bc_socket();
+    sock = try udp.udp_open_bc_socket();
     // Run discover protocol
-    hwAddr = try hw.Hardware.do_discover(&s);
+    hwAddr = try hw.Hardware.do_discover(&sock);
     std.debug.print("Device addr: {}\n", .{hwAddr});
     // Revert socket
     try udp.udp_revert_socket();
+    // Start streaming
+    try hw.Hardware.do_start(&sock, false);
 
     // Run reader thread
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    var rb_reader = try std.RingBuffer.init(allocator, 1024 * 10);
     //const reader_ch = std.event.Channel(u32);
     //readerThrd = try reader.reader_start(reader_ch);
-    readerThrd = try reader.reader_start();
+    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_reader);
 
     // Run UI
     try ui.build();
@@ -84,6 +90,7 @@ pub fn main() !void {
     //std.time.sleep(1000000000);
 
     // Close everything
+    try hw.Hardware.do_stop(&sock);
     try udp.udp_close_socket();
     //reader_ch.put(1);
     readerThrd.join();

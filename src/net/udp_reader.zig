@@ -30,28 +30,41 @@ const net = struct {
 };
 
 pub const Reader = struct {
-    fn loop() !void {
-        //fn loop(ch: std.event.Channel(u32)) !void {
-        //    while (ch.get_count == 0) {
-        //        std.time.sleep(100000000);
-        //    }
-        //    std.debug.print("Reader loop exiting\n", .{});
-        //}
-        std.debug.print("Reader loop \n", .{});
+    fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) !void {
+        _ = rb;
+        _ = hwAddr;
+        // _ = sock;
+        var n: u32 = 0;
+        while (n < 10) {
+            var data = std.mem.zeroes([1032]u8);
+            var resp: net.Socket.ReceiveFrom = undefined;
+            resp = try sock.receiveFrom(&data);
+            //fn loop(ch: std.event.Channel(u32)) !void {
+            //    while (ch.get_count == 0) {
+            //        std.time.sleep(100000000);
+            //    }
+            //    std.debug.print("Reader loop exiting\n", .{});
+            //}
+            std.debug.print("Reader loop got {any}, {any}\n", .{ resp.numberOfBytes, resp.sender });
+            n += 1;
+            std.time.sleep(100000000);
+        }
+        std.debug.print("Reader loop exiting", .{});
     }
 };
 
 //fn reader_thrd(ch: std.event.Channel(u32)) !void {
-fn reader_thrd() !void {
+fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) !void {
     std.debug.print("Reader thread\n", .{});
     //try Reader.loop(ch);
-    try Reader.loop();
+    try Reader.loop(sock, hwAddr, rb);
 }
 
 //==================================================================================
 // Thread startup
 //pub fn reader_start(ch: std.event.Channel(u32)) std.Thread.SpawnError!std.Thread {
-pub fn reader_start() std.Thread.SpawnError!std.Thread {
+pub fn reader_start(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) std.Thread.SpawnError!std.Thread {
+
     //return try std.Thread.spawn(.{}, reader_thrd, .{ch});
-    return try std.Thread.spawn(.{}, reader_thrd, .{});
+    return try std.Thread.spawn(.{}, reader_thrd, .{ sock, hwAddr, rb });
 }
