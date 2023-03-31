@@ -30,15 +30,19 @@ const net = struct {
 };
 
 pub const Reader = struct {
+    var terminate = false;
+
     fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) !void {
-        _ = rb;
         _ = hwAddr;
         // _ = sock;
         var n: u32 = 0;
-        while (n < 10) {
+        while (!terminate) {
             var data = std.mem.zeroes([1032]u8);
             var resp: net.Socket.ReceiveFrom = undefined;
             resp = try sock.receiveFrom(&data);
+            if (resp.numberOfBytes == 1032) {
+                try rb.writeSlice(&data);
+            }
             //fn loop(ch: std.event.Channel(u32)) !void {
             //    while (ch.get_count == 0) {
             //        std.time.sleep(100000000);
@@ -49,7 +53,12 @@ pub const Reader = struct {
             n += 1;
             std.time.sleep(100000000);
         }
-        std.debug.print("Reader loop exiting", .{});
+        std.debug.print("Reader loop exiting\n", .{});
+    }
+
+    pub fn term() void {
+        std.debug.print("Term\n", .{});
+        terminate = true;
     }
 };
 
