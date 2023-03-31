@@ -55,6 +55,7 @@ pub fn main() !void {
     std.log.info("ZigSDR running...", .{});
 
     var hwAddr: net.EndPoint = undefined;
+    var readerThrd: std.Thread = undefined;
 
     // Initialise WSDP
     try wdsp.init();
@@ -73,11 +74,7 @@ pub fn main() !void {
     try udp.udp_revert_socket();
 
     // Run reader thread
-    //try reader.reader_start();
-    var handle: std.Thread.Handle = reader.reader_start() catch |err| {
-        std.debug.print("Spawn failed: {}\n", .{err});
-    };
-    _ = handle;
+    readerThrd = try reader.reader_start();
 
     // Run UI
     try ui.build();
@@ -85,6 +82,7 @@ pub fn main() !void {
 
     // Close everything
     try udp.udp_close_socket();
+    readerThrd.join();
 }
 
 pub fn run() !void {

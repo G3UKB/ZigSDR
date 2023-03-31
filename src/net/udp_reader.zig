@@ -42,9 +42,6 @@ fn reader_thrd() !void {
 
 //==================================================================================
 // Thread startup
-pub fn reader_start() std.Thread.SpawnError!std.Thread.Handle {
-    //pub fn reader_start() !void {
-    var handle = try std.Thread.spawn(.{}, reader_thrd, .{});
-    //_ = handle;
-    return handle;
+pub fn reader_start() std.Thread.SpawnError!std.Thread {
+    return try std.Thread.spawn(.{}, reader_thrd, .{});
 }
