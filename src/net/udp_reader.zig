@@ -135,19 +135,20 @@ pub const Reader = struct {
 
         // Decode into contiguous IQ and Mic frames
         const num_smpls = decode_frame();
-        _ = num_smpls;
 
         //================================================================================
         // At this point we have separated the IQ and Mic data into separate buffers
         // Truncate if necessary for RX samples for current number of receivers
+        var slice = undefined;
         if (num_rx > 1) {
-            //vec_iq.resize((num_smpls*common_defs::BYTES_PER_SAMPLE) as usize, 0);
-            // Need to resize array
+            // Need to resize array to actual number of samples
+            slice = iq[0 .. num_smpls * defs.BYTES_PER_SAMPLE];
         }
-        // Copy the UDP frame into the rb_iq ring buffer
-        try rb.writeSlice(&iq);
+        // Copy the IQ data into the ring buffer
+        try rb.writeSlice(&slice);
 
         // Signal the pipeline that data is available
+        // Don't know how to do this yet
         //let mut locked = self.iq_cond.0.lock().unwrap();
         //*locked = true;
         //self.iq_cond.1.notify_one();
