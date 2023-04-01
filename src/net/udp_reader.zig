@@ -42,16 +42,11 @@ const net = struct {
 };
 
 pub const Reader = struct {
+
+    // Global constants for convienience
     const num_rx = globals.Globals.num_rx;
     const sel_rx = globals.Globals.sel_rx;
     const smpl_rate = globals.Globals.smpl_rate;
-
-    var blisten = false;
-    var terminate = false;
-    var udp_frame = std.mem.zeroes([defs.FRAME_SZ]u8);
-    var iq = std.mem.zeroes([defs.IQ_ARR_SZ_R1]u8);
-    var mic = std.mem.zeroes([defs.MIC_ARR_SZ_R1]u8);
-    var rb: *std.RingBuffer = undefined;
 
     // Tiny state machine states for IQ, Mic. Skip
     const IQ: i32 = 0;
@@ -61,6 +56,16 @@ pub const Reader = struct {
     const SM1: i32 = 4;
     const SM2: i32 = 5;
     const SM3: i32 = 6;
+
+    // Module variables
+    var blisten = false;
+    var terminate = false;
+    var udp_frame = std.mem.zeroes([defs.FRAME_SZ]u8);
+    var iq = std.mem.zeroes([defs.IQ_ARR_SZ_R1]u8);
+    var mic = std.mem.zeroes([defs.MIC_ARR_SZ_R1]u8);
+    var rb: *std.RingBuffer = undefined;
+    var m = std.Thread.Mutex{};
+    var cond = std.Thread.Condition{};
 
     // Thread loop until terminate
     fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer) !void {
