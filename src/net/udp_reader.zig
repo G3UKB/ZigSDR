@@ -44,6 +44,7 @@ const net = struct {
 pub const Reader = struct {
     const num_rx = globals.Globals.num_rx;
     const sel_rx = globals.Globals.sel_rx;
+    const smpl_rate = globals.Globals.smpl_rate;
 
     var blisten = false;
     var terminate = false;
@@ -51,6 +52,15 @@ pub const Reader = struct {
     var iq = std.mem.zeroes([defs.IQ_ARR_SZ_R1]u8);
     var mic = std.mem.zeroes([defs.MIC_ARR_SZ_R1]u8);
     var rb: *std.RingBuffer = undefined;
+
+    // Tiny state machine states for IQ, Mic. Skip
+    const IQ: i32 = 0;
+    const M: i32 = 1;
+    const SIQ1: i32 = 2;
+    const SIQ2: i32 = 3;
+    const SM1: i32 = 4;
+    const SM2: i32 = 5;
+    const SM3: i32 = 6;
 
     // Thread loop until terminate
     fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer) !void {
@@ -164,22 +174,6 @@ pub const Reader = struct {
         // For 96KHz sample rate we take every second sample
         // For 192KHz sample rate we take every fourth sample
 
-        // Tiny state machine states for IQ, Mic. Skip
-        const IQ: i32 = 0;
-        _ = IQ;
-        const M: i32 = 1;
-        _ = M;
-        const SIQ1: i32 = 2;
-        _ = SIQ1;
-        const SIQ2: i32 = 3;
-        _ = SIQ2;
-        const SM1: i32 = 4;
-        _ = SM1;
-        const SM2: i32 = 5;
-        _ = SM2;
-        const SM3: i32 = 6;
-        _ = SM3;
-
         // Index into IQ output data
         var idx_iq = undefined;
         _ = idx_iq;
@@ -188,60 +182,262 @@ pub const Reader = struct {
         _ = idx_mic;
         // Number of samples of IQ and Mic for receiver(s) in one UDP frame
         var smpls = undefined;
-        if (num_rx == 1) 
-            {smpls = defs.NUM_SMPLS_1_RADIO / 2;}
-            proc_one_rx(smpls); 
-        else if (num_rx == 2) 
-            {smpls = defs.NUM_SMPLS_2_RADIO / 2;}
-            proc_two_rx(smpls); 
-        else
-            {smpls = defs.NUM_SMPLS_3_RADIO / 2;}
-            proc_three_rx(smpls); 
-        
+        if (num_rx == 1) {
+            smpls = defs.NUM_SMPLS_1_RADIO / 2;
+            proc_one_rx(smpls);
+        } else if (num_rx == 2) {
+            smpls = defs.NUM_SMPLS_2_RADIO / 2;
+            proc_two_rx(smpls);
+        } else {
+            smpls = defs.NUM_SMPLS_3_RADIO / 2;
+            proc_three_rx(smpls);
+        }
     }
 
     // Decode for one receiver
     fn proc_one_rx(smpls: u32) void {
         // Take all I/Q and Mic data for one receiver
-		var idx_iq = 0;
-		var idx_mic = 0;
+        var idx_iq = 0;
+        var idx_mic = 0;
+        var frame = 1;
+        var smpl = 0;
+        while (frame <= 2) {
+            var state = IQ;
+            var index = defs.START_FRAME_1;
+            if (frame == 2) {
+                index = defs.START_FRAME_2;
+            }
+            while (smpl < smpls * 2) {
+                if (state == IQ) {
+                    // Take IQ bytes
+                    while (index < index + defs.BYTES_PER_SAMPLE) {
+                        iq[idx_iq] = udp_frame[index];
+                        idx_iq += 1;
+                        index += 1;
+                    }
+                    state = M;
+                } else if (state == M) {
+                    // Take Mic bytes
+                    while (index < index + defs.MIC_BYTES_PER_SAMPLE) {
+                        mic[idx_mic] = udp_frame[index];
+                        idx_mic += 1;
+                        index += 1;
+                    }
+                    state = IQ;
+                }
+                smpl += 1;
+            }
+            frame = 2;
+        }
+        return smpls * 2;
+    }
+
+    // Decode for two receivers
+    fn proc_two_rx(smpls: u32) void {
+        // Skip either RX 1 or RX 2 data
+        var idx_iq = 0;
+        var idx_mic = 0;
         var frame = 1;
         var smpl = 0;
         var byte = 0;
-		while (frame <= 2) {
-			var state = IQ;
-			var index = defs.START_FRAME_1;
-			if (frame == 2) {index = defs.START_FRAME_2;}
-			while (smpl < smpls*2) {
-				if (state == IQ) {
-					// Take IQ bytes
-                    while (index < index+defs.BYTES_PER_SAMPLE) {
-						iq[idx_iq] = udp_frame[index];
-						idx_iq += 1;
+        _ = byte;
+        while (frame <= 2) {
+            // Main state depends on selected RX
+            var state = IQ;
+            if (sel_rx == 2) {
+                state = SIQ1;
+            }
+            // Sub-state depend on sample rate as we may skip mic samples
+            var sub_state = undefined;
+            if (smpl_rate == defs.SMPLS_48K) {
+                sub_state = M;
+            } else {
+                sub_state = SM1;
+            }
+            // Set start point depending on frame
+            var index = defs.START_FRAME_1;
+            if (frame == 2) {
+                index = defs.START_FRAME_2;
+            }
+            while (smpl < smpls * 3) {
+                if (state == IQ) {
+                    // Take IQ bytes
+                    while (index < index + defs.BYTES_PER_SAMPLE) {
+                        iq[idx_iq] = udp_frame[index];
+                        idx_iq += 1;
                         index += 1;
-					}
-					state = M;
-				} else if (state == M) {
-					// Take Mic bytes
-                    while (index < index+defs.MIC_BYTES_PER_SAMPLE) {
-						mic[idx_mic] = udp_frame[index];
-						idx_mic += 1;
-                        index += 1;
-					}
-					state = IQ;
-				}
+                    }
+                    // Next state and sub-state
+                    if (sel_rx == 1) {
+                        state = SIQ1;
+                    } else {
+                        state = M;
+                    }
+                    if (smpl_rate == defs.SMPLS_48K) {
+                        sub_state = M;
+                    } else {
+                        sub_state = SM1;
+                    }
+                } else if (state == SIQ1) {
+                    // Skip IQ bytes, not selected RX
+                    index += defs.BYTES_PER_SAMPLE;
+                    // Set next state
+                    if (sel_rx == 1) {
+                        state = M;
+                    } else {
+                        state = IQ;
+                    }
+                    if (smpl_rate == defs.SMPLS_48K) {
+                        sub_state = M;
+                    } else {
+                        sub_state = SM1;
+                    }
+                } else if (state == M) {
+                    // Skip 1,2 or 3 samples if > 48KHz
+                    if (sub_state == SM1) {
+                        index += defs.MIC_BYTES_PER_SAMPLE;
+                        if (smpl_rate == defs.SMPLS_192K) {
+                            sub_state = SM2;
+                        } else {
+                            sub_state = M;
+                        }
+                    } else if (sub_state == SM2) {
+                        index += defs.MIC_BYTES_PER_SAMPLE;
+                        if (smpl_rate == defs.SMPLS_192K) {
+                            sub_state = SM3;
+                        } else {
+                            sub_state = M;
+                        }
+                    } else if (sub_state == SM3) {
+                        index += defs.MIC_BYTES_PER_SAMPLE;
+                        sub_state = M;
+                    } else {
+                        // Take Mic bytes
+                        while (index < index + defs.MIC_BYTES_PER_SAMPLE) {
+                            mic[idx_mic] = udp_frame[index];
+                            idx_mic += 1;
+                            index += 1;
+                        }
+                    }
+                    // Set next state
+                    if (sel_rx == 1) {
+                        state = IQ;
+                    } else {
+                        state = SIQ1;
+                    }
+                }
                 smpl += 1;
-			}
+            }
             frame = 2;
-		}
-        return smpls*2;
+        }
+        return smpls * 2;
     }
 
-    fn take_iq_bytes() void {
-
+    // Decode for three receivers
+    fn proc_three_rx(smpls: u32) void {
+        // Skip either RX 1 RX 2 or RX 3 data
+        var idx_iq = 0;
+        var idx_mic = 0;
+        var frame = 1;
+        var smpl = 0;
+        while (frame <= 2) {
+            // Main state depends on selected RX
+            var state = IQ;
+            if (sel_rx == 2 or sel_rx == 3) {
+                state = SIQ1;
+            }
+            // Sub-state depend on sample rate as we may skip mic samples
+            var sub_state = undefined;
+            if (smpl_rate == defs.SMPLS_48K) {
+                sub_state = M;
+            } else {
+                sub_state = SM1;
+            }
+            // Set start point depending on frame
+            var index = defs.START_FRAME_1;
+            if (frame == 2) {
+                index = defs.START_FRAME_2;
+            }
+            while (smpl < smpls * 4) {
+                if (state == IQ) {
+                    // Take IQ bytes
+                    while (index < index + defs.BYTES_PER_SAMPLE) {
+                        iq[idx_iq] = udp_frame[index];
+                        idx_iq += 1;
+                        index += 1;
+                    }
+                    // Next state and sub-state
+                    if (sel_rx == 1) {
+                        state = SIQ1;
+                    } else if (sel_rx == 2) {
+                        state = SIQ2;
+                    } else {
+                        state = M;
+                    }
+                    if (smpl_rate == defs.SMPLS_48K) {
+                        sub_state = M;
+                    } else {
+                        sub_state = SM1;
+                    }
+                } else if (state == SIQ1) {
+                    // Skip IQ bytes, not selected RX
+                    index += defs.BYTES_PER_SAMPLE;
+                    // Set next state
+                    if (sel_rx == 1) {
+                        state = SIQ2;
+                    } else if (sel_rx == 2) {
+                        state = IQ;
+                    } else {
+                        state = SIQ2;
+                    }
+                    if (smpl_rate == defs.SMPLS_48K) {
+                        sub_state = M;
+                    } else {
+                        sub_state = SM1;
+                    }
+                } else if (state == M) {
+                    // Skip 1,2 or 3 samples if > 48KHz
+                    if (sub_state == SM1) {
+                        index += defs.MIC_BYTES_PER_SAMPLE;
+                        if (smpl_rate == defs.SMPLS_192K) {
+                            sub_state = SM2;
+                        } else {
+                            sub_state = M;
+                        }
+                    } else if (sub_state == SM2) {
+                        index += defs.MIC_BYTES_PER_SAMPLE;
+                        if (smpl_rate == defs.SMPLS_192K) {
+                            sub_state = SM3;
+                        } else {
+                            sub_state = M;
+                        }
+                    } else if (sub_state == SM3) {
+                        index += defs.MIC_BYTES_PER_SAMPLE;
+                        sub_state = M;
+                    } else {
+                        // Take Mic bytes
+                        while (index < index + defs.MIC_BYTES_PER_SAMPLE) {
+                            mic[idx_mic] = udp_frame[index];
+                            idx_mic += 1;
+                            index += 1;
+                        }
+                    }
+                    // Set next state
+                    if (sel_rx == 1) {
+                        state = IQ;
+                    } else {
+                        state = SIQ1;
+                    }
+                }
+                smpl += 1;
+            }
+            frame = 2;
+        }
+        return smpls * 2;
     }
 };
 
+// Start reader loop
 fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) !void {
     std.debug.print("Reader thread\n", .{});
     try Reader.loop(sock, hwAddr, rb);
