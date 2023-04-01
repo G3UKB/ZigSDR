@@ -1,4 +1,4 @@
-// seq_in.rs
+// seq_in.zig
 //
 // Module - seq_in
 // Manages the EP6 sequence number check
@@ -27,66 +27,66 @@
 const std = @import("std");
 const expect = std.testing.expect;
 
-// Container local variables
-// Maximum sequence number
-const seq_max: u32 = std.math.maxInt(u32);
-// EP6 sequence number to check
-var ep6_seq_check: u32 = 0;
-// True when seq initialised
-var ep6_init: bool = false;
+pub const SeqIn = struct {
+    // Container local variables
+    // Maximum sequence number
+    const seq_max: u32 = std.math.maxInt(u32);
+    // EP6 sequence number to check
+    var ep6_seq_check: u32 = 0;
+    // True when seq initialised
+    var ep6_init: bool = false;
 
-// ==========================================================================
-// Public interface
-pub fn check_ep6_seq(seq: [4]u8) !bool {
-    var r: bool = false;
-    var new_seq = big_to_little_endian(seq);
-    if (!ep6_init) {
-        ep6_seq_check = new_seq;
-        ep6_init = true;
-        r = true;
-    } else if (new_seq == 0) { 
-        ep6_seq_check = 0;
-    } else if (ep6_seq_check + 1 != new_seq) {
-        const stdout = std.io.getStdOut().writer();
-        try stdout.print("EP6 sequence error - Ex:{d}, Got:{d}\n", .{ep6_seq_check, new_seq});
-        ep6_seq_check = new_seq;
-    } else {
-        ep6_seq_check = next_seq(ep6_seq_check);
-        r = true;
+    // ==========================================================================
+    // Public interface
+    pub fn check_ep6_seq(seq: [4]u8) !bool {
+        var r: bool = false;
+        var new_seq = big_to_little_endian(seq);
+        if (!ep6_init) {
+            ep6_seq_check = new_seq;
+            ep6_init = true;
+            r = true;
+        } else if (new_seq == 0) {
+            ep6_seq_check = 0;
+        } else if (ep6_seq_check + 1 != new_seq) {
+            const stdout = std.io.getStdOut().writer();
+            try stdout.print("EP6 sequence error - Ex:{d}, Got:{d}\n", .{ ep6_seq_check, new_seq });
+            ep6_seq_check = new_seq;
+        } else {
+            ep6_seq_check = next_seq(ep6_seq_check);
+            r = true;
+        }
+        return r;
     }
-    return r;
-}
 
-// ==========================================================================
-// Private interface
-fn next_seq(seq: u32) u32 {
-    var new_seq = seq + 1;
-    if (new_seq > seq_max) {
-        new_seq = 0;
+    // ==========================================================================
+    // Private interface
+    fn next_seq(seq: u32) u32 {
+        var new_seq = seq + 1;
+        if (new_seq > seq_max) {
+            new_seq = 0;
+        }
+        return new_seq;
     }
-    return new_seq;
-}
 
-fn big_to_little_endian(big_endian: [4]u8) u32 {
-    var little_endian: u32 = undefined;
-    little_endian = big_endian[0];
-    little_endian = (little_endian << 8) | (big_endian[1]);
-    little_endian = (little_endian << 8) | (big_endian[2]);
-    little_endian = (little_endian << 8) | (big_endian[3]);
-    return little_endian;
-}
+    fn big_to_little_endian(big_endian: [4]u8) u32 {
+        var little_endian: u32 = undefined;
+        little_endian = big_endian[0];
+        little_endian = (little_endian << 8) | (big_endian[1]);
+        little_endian = (little_endian << 8) | (big_endian[2]);
+        little_endian = (little_endian << 8) | (big_endian[3]);
+        return little_endian;
+    }
+};
 
 // ==========================================================================
 // Module test
 test "EP6 Sequence Check" {
     const stdout = std.io.getStdOut().writer();
-    var r: bool = try check_ep6_seq([_]u8{0,0,0,0});
+    var r: bool = try SeqIn.check_ep6_seq([_]u8{ 0, 0, 0, 0 });
     try stdout.print("\nEP6 check result {}\n", .{r});
-    try expect(r==true);
+    try expect(r == true);
 
-    r = try check_ep6_seq([_]u8{0,0,0,1});
+    r = try SeqIn.check_ep6_seq([_]u8{ 0, 0, 0, 1 });
     try stdout.print("\nEP6 check result {}\n", .{r});
-    try expect(r==true);
+    try expect(r == true);
 }
-
-

@@ -64,7 +64,6 @@ pub fn main() !void {
     // Initialise net
     try net.init();
     defer net.deinit();
-    //std.debug.print("Endpoints: {}\n", .{net.getEndpointList()});
 
     // Open a broadcast socket
     sock = try udp.udp_open_bc_socket();
@@ -80,19 +79,17 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     var rb_reader = try std.RingBuffer.init(allocator, 1024 * 100);
-    //const reader_ch = std.event.Channel(u32);
-    //readerThrd = try reader.reader_start(reader_ch);
     readerThrd = try reader.reader_start(&sock, hwAddr, &rb_reader);
+    reader.Reader.listen(true);
 
     // Run UI
     try ui.build();
     try ui.run();
-    //std.time.sleep(1000000000);
 
     // Close everything
     try hw.Hardware.do_stop(&sock);
     try udp.udp_close_socket();
-    //reader_ch.put(1);
+    reader.Reader.listen(false);
     reader.Reader.term();
     readerThrd.join();
 }
