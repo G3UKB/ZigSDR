@@ -57,6 +57,8 @@ pub fn main() !void {
     var sock: net.Socket = undefined;
     var hwAddr: net.EndPoint = undefined;
     var readerThrd: std.Thread = undefined;
+    var iq_mut = std.Thread.Mutex{};
+    var iq_cond = std.Thread.Condition{};
 
     // Initialise WSDP
     try wdsp.init();
@@ -79,7 +81,7 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     var rb_reader = try std.RingBuffer.init(allocator, 1024 * 100);
-    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_reader);
+    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_reader, iq_mut, iq_cond);
     reader.Reader.listen(true);
 
     // Run UI

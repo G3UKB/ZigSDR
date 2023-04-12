@@ -64,13 +64,15 @@ pub const Reader = struct {
     var iq = std.mem.zeroes([defs.IQ_ARR_SZ_R1]u8);
     var mic = std.mem.zeroes([defs.MIC_ARR_SZ_R1]u8);
     var rb: *std.RingBuffer = undefined;
-    var m = std.Thread.Mutex{};
-    var cond = std.Thread.Condition{};
+    var mutex: std.Thread.Mutex = undefined;
+    var cond: std.Thread.Condition = undefined;
 
     // Thread loop until terminate
-    fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer) !void {
+    fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
         _ = hwAddr;
         rb = rb_reader;
+        mutex = iq_mutex;
+        cond = iq_cond;
         var n: u32 = 0;
         while (!terminate) {
             if (listen) {
@@ -153,10 +155,9 @@ pub const Reader = struct {
         try rb.writeSlice(&slice);
 
         // Signal the pipeline that data is available
-        // Don't know how to do this yet
-        //let mut locked = self.iq_cond.0.lock().unwrap();
-        //*locked = true;
-        //self.iq_cond.1.notify_one();
+        mutex.lock();
+        defer mutex.unlock();
+        cond.signal();
     }
 
     // Split inti IQ and Mic frames
@@ -444,13 +445,13 @@ pub const Reader = struct {
 };
 
 // Start reader loop
-fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) !void {
+fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
     std.debug.print("Reader thread\n", .{});
-    try Reader.loop(sock, hwAddr, rb);
+    try Reader.loop(sock, hwAddr, rb, iq_mutex, iq_cond);
 }
 
 //==================================================================================
 // Thread startup
-pub fn reader_start(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer) std.Thread.SpawnError!std.Thread {
-    return try std.Thread.spawn(.{}, reader_thrd, .{ sock, hwAddr, rb });
+pub fn reader_start(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) std.Thread.SpawnError!std.Thread {
+    return try std.Thread.spawn(.{}, reader_thrd, .{ sock, hwAddr, rb, iq_mutex, iq_cond });
 }
