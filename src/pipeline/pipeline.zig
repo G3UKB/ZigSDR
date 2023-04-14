@@ -43,19 +43,37 @@ const net = struct {
 
 pub const Pipeline = struct {
 
+    // Module variables
+    var terminate = false;
+    var iq_data = std.mem.zeroes([defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE]u8);
+
     // Thread loop until terminate
-    fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+    pub fn pipeline_run(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
         _ = hwAddr;
         rb = rb_reader;
         mutex = iq_mutex;
         cond = iq_cond;
+
+        while (!terminate) {
+            // Wait for data to be signalled
+            if (try wait_data()) {
+                // Data to process, already extracted from ring buffer to iq_data
+                try run_sequence();
+            }
+        }
     }
+
+    // Extract data from IQ ring buffer
+    fn wait_data() !bool {}
+
+    // Run the sequence to process IQ data
+    fn run_sequence() !void {}
 };
 
 // Start pipeline loop
 fn pipeline_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
     std.debug.print("Reader thread\n", .{});
-    try Pipeline.loop(sock, hwAddr, rb, iq_mutex, iq_cond);
+    try Pipeline.pipeline_run(sock, hwAddr, rb, iq_mutex, iq_cond);
 }
 
 //==================================================================================
