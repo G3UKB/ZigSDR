@@ -43,12 +43,17 @@ const net = struct {
 
 pub const Pipeline = struct {
 
+    // Constants
+    const sz: usize = defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE;
     // Module variables
     var terminate = false;
-    var iq_data = std.mem.zeroes([defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE]u8);
+    var iq_data = std.mem.zeroes([sz]u8);
+    var rb: *std.RingBuffer = undefined;
+    var mutex: std.Thread.Mutex = undefined;
+    var cond: std.Thread.Condition = undefined;
 
     // Thread loop until terminate
-    pub fn pipeline_run(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+    pub fn pipeline_run(hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
         _ = hwAddr;
         rb = rb_reader;
         mutex = iq_mutex;
@@ -63,21 +68,39 @@ pub const Pipeline = struct {
         }
     }
 
+    pub fn term() void {
+        std.debug.print("Term pipeline\n", .{});
+        terminate = true;
+    }
+
     // Extract data from IQ ring buffer
-    fn wait_data() !bool {}
+    fn wait_data() !bool {
+        // Wait for a signal
+        mutex.lock();
+        defer mutex.unlock();
+        cond.timedWait(mutex, 10000000) catch |err| {
+            if (err == error{Timeout}) {
+                return false;
+            } else {
+                // Extract data from the ring buffer to local storage
+                rb.sliceAt(rb.read_index, sz);
+                return true;
+            }
+        };
+    }
 
     // Run the sequence to process IQ data
     fn run_sequence() !void {}
 };
 
 // Start pipeline loop
-fn pipeline_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+fn pipeline_thrd(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
     std.debug.print("Reader thread\n", .{});
-    try Pipeline.pipeline_run(sock, hwAddr, rb, iq_mutex, iq_cond);
+    try Pipeline.pipeline_run(hwAddr, rb, iq_mutex, iq_cond);
 }
 
 //==================================================================================
 // Thread startup
-pub fn pipeline_start(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) std.Thread.SpawnError!std.Thread {
-    return try std.Thread.spawn(.{}, pipeline_thrd, .{ sock, hwAddr, rb, iq_mutex, iq_cond });
+pub fn pipeline_start(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) std.Thread.SpawnError!std.Thread {
+    return try std.Thread.spawn(.{}, pipeline_thrd, .{ hwAddr, rb, iq_mutex, iq_cond });
 }

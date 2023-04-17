@@ -41,6 +41,9 @@ const udp = struct {
 const reader = struct {
     usingnamespace @import("net/udp_reader.zig");
 };
+const pipeline = struct {
+    usingnamespace @import("pipeline/pipeline.zig");
+};
 const hw = struct {
     usingnamespace @import("net/hw_control.zig");
 };
@@ -56,6 +59,7 @@ pub fn main() !void {
 
     var sock: net.Socket = undefined;
     var hwAddr: net.EndPoint = undefined;
+    var pipelineThrd: std.Thread = undefined;
     var readerThrd: std.Thread = undefined;
     var iq_mut = std.Thread.Mutex{};
     var iq_cond = std.Thread.Condition{};
@@ -77,11 +81,16 @@ pub fn main() !void {
     // Start streaming
     try hw.Hardware.do_start(&sock, false);
 
-    // Run reader thread
+    // Create an iq ring buffer
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    var rb_reader = try std.RingBuffer.init(allocator, 1024 * 100);
-    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_reader, iq_mut, iq_cond);
+    var rb_iq = try std.RingBuffer.init(allocator, 1024 * 100);
+
+    // Run pipeline thread
+    pipelineThrd = try pipeline.pipeline_start(hwAddr, &rb_iq, iq_mut, iq_cond);
+
+    // Run reader thread
+    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_iq, iq_mut, iq_cond);
     reader.Reader.listen(true);
 
     // Run UI
@@ -93,13 +102,6 @@ pub fn main() !void {
     try udp.udp_close_socket();
     reader.Reader.listen(false);
     reader.Reader.term();
+    pipeline.Pipeline.term();
     readerThrd.join();
-}
-
-pub fn run() !void {
-    try wdsp.init();
-}
-
-test "ZigSDR" {
-    try run();
 }

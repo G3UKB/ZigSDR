@@ -103,7 +103,7 @@ pub const Reader = struct {
     }
 
     pub fn term() void {
-        std.debug.print("Term\n", .{});
+        std.debug.print("Term reader\n", .{});
         terminate = true;
     }
 
