@@ -26,19 +26,19 @@
 const std = @import("std");
 
 const globals = struct {
-    usingnamespace @import("common/globals.zig");
+    usingnamespace @import("../common/globals.zig");
 };
 
 const defs = struct {
-    usingnamespace @import("common/common_defs.zig");
+    usingnamespace @import("../common/common_defs.zig");
 };
 
 const seq = struct {
-    usingnamespace @import("protocol/seq_in.zig");
+    usingnamespace @import("../protocol/seq_in.zig");
 };
 
 const net = struct {
-    usingnamespace @import("network.zig");
+    usingnamespace @import("../net/network.zig");
 };
 
 pub const Pipeline = struct {
@@ -49,11 +49,11 @@ pub const Pipeline = struct {
     var terminate = false;
     var iq_data = std.mem.zeroes([sz]u8);
     var rb: *std.RingBuffer = undefined;
-    var mutex: std.Thread.Mutex = undefined;
-    var cond: std.Thread.Condition = undefined;
+    var mutex: *std.Thread.Mutex = undefined;
+    var cond: *std.Thread.Condition = undefined;
 
     // Thread loop until terminate
-    pub fn pipeline_run(hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+    pub fn pipeline_run(hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) !void {
         _ = hwAddr;
         rb = rb_reader;
         mutex = iq_mutex;
@@ -94,13 +94,13 @@ pub const Pipeline = struct {
 };
 
 // Start pipeline loop
-fn pipeline_thrd(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+fn pipeline_thrd(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) !void {
     std.debug.print("Reader thread\n", .{});
     try Pipeline.pipeline_run(hwAddr, rb, iq_mutex, iq_cond);
 }
 
 //==================================================================================
 // Thread startup
-pub fn pipeline_start(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) std.Thread.SpawnError!std.Thread {
+pub fn pipeline_start(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) std.Thread.SpawnError!std.Thread {
     return try std.Thread.spawn(.{}, pipeline_thrd, .{ hwAddr, rb, iq_mutex, iq_cond });
 }

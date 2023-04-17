@@ -23,7 +23,7 @@
 // bob@bobcowdery.plus.com
 
 pub const Globals = struct {
-    var num_rx = 1;
-    var sel_rx = 1;
-    var smpl_rate = 48000;
+    pub var num_rx: u32 = 1;
+    pub var sel_rx: u32 = 1;
+    pub var smpl_rate: u32 = 48000;
 };

@@ -87,10 +87,10 @@ pub fn main() !void {
     var rb_iq = try std.RingBuffer.init(allocator, 1024 * 100);
 
     // Run pipeline thread
-    pipelineThrd = try pipeline.pipeline_start(hwAddr, &rb_iq, iq_mut, iq_cond);
+    pipelineThrd = try pipeline.pipeline_start(hwAddr, &rb_iq, &iq_mut, &iq_cond);
 
     // Run reader thread
-    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_iq, iq_mut, iq_cond);
+    readerThrd = try reader.reader_start(&sock, hwAddr, &rb_iq, &iq_mut, &iq_cond);
     reader.Reader.listen(true);
 
     // Run UI

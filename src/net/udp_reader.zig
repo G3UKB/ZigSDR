@@ -26,15 +26,15 @@
 const std = @import("std");
 
 const globals = struct {
-    usingnamespace @import("common/globals.zig");
+    usingnamespace @import("../common/globals.zig");
 };
 
 const defs = struct {
-    usingnamespace @import("common/common_defs.zig");
+    usingnamespace @import("../common/common_defs.zig");
 };
 
 const seq = struct {
-    usingnamespace @import("protocol/seq_in.zig");
+    usingnamespace @import("../protocol/seq_in.zig");
 };
 
 const net = struct {
@@ -64,18 +64,18 @@ pub const Reader = struct {
     var iq = std.mem.zeroes([defs.IQ_ARR_SZ_R1]u8);
     var mic = std.mem.zeroes([defs.MIC_ARR_SZ_R1]u8);
     var rb: *std.RingBuffer = undefined;
-    var mutex: std.Thread.Mutex = undefined;
-    var cond: std.Thread.Condition = undefined;
+    var mutex: *std.Thread.Mutex = undefined;
+    var cond: *std.Thread.Condition = undefined;
 
     // Thread loop until terminate
-    fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+    fn loop(sock: *net.Socket, hwAddr: net.EndPoint, rb_reader: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) !void {
         _ = hwAddr;
         rb = rb_reader;
         mutex = iq_mutex;
         cond = iq_cond;
         var n: u32 = 0;
         while (!terminate) {
-            if (listen) {
+            if (blisten) {
                 var resp: net.Socket.ReceiveFrom = undefined;
                 resp = try sock.receiveFrom(&udp_frame);
                 if (resp.numberOfBytes == 1032) {
@@ -130,7 +130,7 @@ pub const Reader = struct {
                 j += 1;
                 i += 1;
             }
-            if (seq.SeqIn.check_ep6_seq(ep6_seq)) {
+            if (try seq.SeqIn.check_ep6_seq(ep6_seq)) {
                 //Boolean return incase we need to do anything
                 // Sequence errors are reported in cc-in
             }
@@ -146,11 +146,8 @@ pub const Reader = struct {
         //================================================================================
         // At this point we have separated the IQ and Mic data into separate buffers
         // Truncate if necessary for RX samples for current number of receivers
-        var slice = undefined;
-        if (num_rx > 1) {
-            // Need to resize array to actual number of samples
-            slice = iq[0 .. num_smpls * defs.BYTES_PER_SAMPLE];
-        }
+        // Need to resize array to actual number of samples
+        var slice = iq[0 .. num_smpls * defs.BYTES_PER_SAMPLE];
         // Copy the IQ data into the ring buffer
         try rb.writeSlice(&slice);
 
@@ -161,7 +158,7 @@ pub const Reader = struct {
     }
 
     // Split inti IQ and Mic frames
-    fn decode_frame() !u32 {
+    fn decode_frame() u32 {
         // Extract the data from the UDP frame into the IQ and Mic frames
         // Select the correct RX data at this point
         // One RX   - I2(1)I1(1)10(1)Q2(1)Q1(1)Q0(1)MM etc
@@ -182,13 +179,13 @@ pub const Reader = struct {
         // For 192KHz sample rate we take every fourth sample
 
         // Index into IQ output data
-        var idx_iq = undefined;
-        _ = idx_iq;
+        //var idx_iq = undefined;
+        //_ = idx_iq;
         // Index into Mic output data
-        var idx_mic = undefined;
-        _ = idx_mic;
+        //var idx_mic = undefined;
+        //_ = idx_mic;
         // Number of samples of IQ and Mic for receiver(s) in one UDP frame
-        var smpls = undefined;
+        var smpls: u32 = 0;
         if (num_rx == 1) {
             smpls = defs.NUM_SMPLS_1_RADIO / 2;
             proc_one_rx(smpls);
@@ -445,13 +442,13 @@ pub const Reader = struct {
 };
 
 // Start reader loop
-fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) !void {
+fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) !void {
     std.debug.print("Reader thread\n", .{});
     try Reader.loop(sock, hwAddr, rb, iq_mutex, iq_cond);
 }
 
 //==================================================================================
 // Thread startup
-pub fn reader_start(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: std.Thread.Mutex, iq_cond: std.Thread.Condition) std.Thread.SpawnError!std.Thread {
+pub fn reader_start(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) std.Thread.SpawnError!std.Thread {
     return try std.Thread.spawn(.{}, reader_thrd, .{ sock, hwAddr, rb, iq_mutex, iq_cond });
 }
