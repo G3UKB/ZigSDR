@@ -1,7 +1,7 @@
 // converters.zig
 //
 // Module - converters
-// Coordinates the main sequence.
+// Various converters from byte stream BE to f32/f64 LE and visa versa.
 //
 // Copyright (C) 2023 by G3UKB Bob Cowdery
 //
