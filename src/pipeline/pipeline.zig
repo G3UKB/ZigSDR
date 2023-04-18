@@ -79,11 +79,14 @@ pub const Pipeline = struct {
         mutex.lock();
         defer mutex.unlock();
         cond.timedWait(mutex, 10000000) catch |err| {
-            if (err == error{Timeout}) {
+            if (err == error.Timeout) {
                 return false;
             } else {
                 // Extract data from the ring buffer to local storage
-                rb.sliceAt(rb.read_index, sz);
+                var rb_slice: std.RingBuffer.Slice = try rb.sliceAt(rb.read_index, sz);
+                var first = rb_slice.first;
+                var second = rb_slice.second;
+                iq_data = first + second;
                 return true;
             }
         };

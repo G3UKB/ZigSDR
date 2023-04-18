@@ -44,9 +44,9 @@ const net = struct {
 pub const Reader = struct {
 
     // Global constants for convienience
-    const num_rx = globals.Globals.num_rx;
-    const sel_rx = globals.Globals.sel_rx;
-    const smpl_rate = globals.Globals.smpl_rate;
+    var num_rx: u32 = undefined;
+    var sel_rx: u32 = undefined;
+    var smpl_rate: u32 = undefined;
 
     // Tiny state machine states for IQ, Mic. Skip
     const IQ: i32 = 0;
@@ -74,6 +74,10 @@ pub const Reader = struct {
         mutex = iq_mutex;
         cond = iq_cond;
         var n: u32 = 0;
+        num_rx = globals.Globals.num_rx;
+        sel_rx = globals.Globals.sel_rx;
+        smpl_rate = globals.Globals.smpl_rate;
+
         while (!terminate) {
             if (blisten) {
                 var resp: net.Socket.ReceiveFrom = undefined;
@@ -149,7 +153,11 @@ pub const Reader = struct {
         // Need to resize array to actual number of samples
         var slice = iq[0 .. num_smpls * defs.BYTES_PER_SAMPLE];
         // Copy the IQ data into the ring buffer
-        try rb.writeSlice(&slice);
+        rb.writeSlice(slice) catch |err| {
+            if (err == error.Full) {
+                std.debug.print("IQ ring buffer full!\n", .{});
+            }
+        };
 
         // Signal the pipeline that data is available
         mutex.lock();
@@ -186,25 +194,27 @@ pub const Reader = struct {
         //_ = idx_mic;
         // Number of samples of IQ and Mic for receiver(s) in one UDP frame
         var smpls: u32 = 0;
+        var actual_smpls: u32 = 0;
         if (num_rx == 1) {
             smpls = defs.NUM_SMPLS_1_RADIO / 2;
-            proc_one_rx(smpls);
+            actual_smpls = proc_one_rx(smpls);
         } else if (num_rx == 2) {
             smpls = defs.NUM_SMPLS_2_RADIO / 2;
-            proc_two_rx(smpls);
+            actual_smpls = proc_two_rx(smpls);
         } else {
             smpls = defs.NUM_SMPLS_3_RADIO / 2;
-            proc_three_rx(smpls);
+            actual_smpls = proc_three_rx(smpls);
         }
+        return actual_smpls;
     }
 
     // Decode for one receiver
-    fn proc_one_rx(smpls: u32) void {
+    fn proc_one_rx(smpls: u32) u32 {
         // Take all I/Q and Mic data for one receiver
-        var idx_iq = 0;
-        var idx_mic = 0;
-        var frame = 1;
-        var smpl = 0;
+        var idx_iq: u32 = 0;
+        var idx_mic: u32 = 0;
+        var frame: u32 = 1;
+        var smpl: u32 = 0;
         while (frame <= 2) {
             var state = IQ;
             var index = defs.START_FRAME_1;
@@ -237,13 +247,13 @@ pub const Reader = struct {
     }
 
     // Decode for two receivers
-    fn proc_two_rx(smpls: u32) void {
+    fn proc_two_rx(smpls: u32) u32 {
         // Skip either RX 1 or RX 2 data
-        var idx_iq = 0;
-        var idx_mic = 0;
-        var frame = 1;
-        var smpl = 0;
-        var byte = 0;
+        var idx_iq: u32 = 0;
+        var idx_mic: u32 = 0;
+        var frame: u32 = 1;
+        var smpl: u32 = 0;
+        var byte: u32 = 0;
         _ = byte;
         while (frame <= 2) {
             // Main state depends on selected RX
@@ -252,7 +262,7 @@ pub const Reader = struct {
                 state = SIQ1;
             }
             // Sub-state depend on sample rate as we may skip mic samples
-            var sub_state = undefined;
+            var sub_state: u32 = undefined;
             if (smpl_rate == defs.SMPLS_48K) {
                 sub_state = M;
             } else {
@@ -338,12 +348,12 @@ pub const Reader = struct {
     }
 
     // Decode for three receivers
-    fn proc_three_rx(smpls: u32) void {
+    fn proc_three_rx(smpls: u32) u32 {
         // Skip either RX 1 RX 2 or RX 3 data
-        var idx_iq = 0;
-        var idx_mic = 0;
-        var frame = 1;
-        var smpl = 0;
+        var idx_iq: u32 = 0;
+        var idx_mic: u32 = 0;
+        var frame: u32 = 1;
+        var smpl: u32 = 0;
         while (frame <= 2) {
             // Main state depends on selected RX
             var state = IQ;
@@ -351,7 +361,7 @@ pub const Reader = struct {
                 state = SIQ1;
             }
             // Sub-state depend on sample rate as we may skip mic samples
-            var sub_state = undefined;
+            var sub_state: u32 = undefined;
             if (smpl_rate == defs.SMPLS_48K) {
                 sub_state = M;
             } else {
