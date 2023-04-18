@@ -84,9 +84,7 @@ pub const Pipeline = struct {
             } else {
                 // Extract data from the ring buffer to local storage
                 var rb_slice: std.RingBuffer.Slice = try rb.sliceAt(rb.read_index, sz);
-                var first = rb_slice.first;
-                var second = rb_slice.second;
-                iq_data = first + second;
+                iq_data = rb_slice.first + rb_slice.second;
                 return true;
             }
         };
