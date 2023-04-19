@@ -43,7 +43,7 @@ pub const Address = union(AddressFamily) {
         pub const broadcast = IPv4.init(255, 255, 255, 255);
         pub const loopback = IPv4.init(127, 0, 0, 1);
         pub const multicast_all = IPv4.init(224, 0, 0, 1);
-        pub const mine = IPv4.init(192, 168, 1, 7);
+        pub const mine = IPv4.init(192, 168, 1, 10);
 
         value: [4]u8,
 

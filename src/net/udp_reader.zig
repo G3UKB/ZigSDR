@@ -224,7 +224,8 @@ pub const Reader = struct {
             while (smpl < smpls * 2) {
                 if (state == IQ) {
                     // Take IQ bytes
-                    while (index < index + defs.BYTES_PER_SAMPLE) {
+                    const limit = index + defs.BYTES_PER_SAMPLE;
+                    while (index < limit) {
                         iq[idx_iq] = udp_frame[index];
                         idx_iq += 1;
                         index += 1;
@@ -232,7 +233,8 @@ pub const Reader = struct {
                     state = M;
                 } else if (state == M) {
                     // Take Mic bytes
-                    while (index < index + defs.MIC_BYTES_PER_SAMPLE) {
+                    const limit = index + defs.MIC_BYTES_PER_SAMPLE;
+                    while (index < limit) {
                         mic[idx_mic] = udp_frame[index];
                         idx_mic += 1;
                         index += 1;
@@ -276,7 +278,8 @@ pub const Reader = struct {
             while (smpl < smpls * 3) {
                 if (state == IQ) {
                     // Take IQ bytes
-                    while (index < index + defs.BYTES_PER_SAMPLE) {
+                    const limit = index + defs.BYTES_PER_SAMPLE;
+                    while (index < limit) {
                         iq[idx_iq] = udp_frame[index];
                         idx_iq += 1;
                         index += 1;
@@ -327,7 +330,8 @@ pub const Reader = struct {
                         sub_state = M;
                     } else {
                         // Take Mic bytes
-                        while (index < index + defs.MIC_BYTES_PER_SAMPLE) {
+                        const limit = index + defs.MIC_BYTES_PER_SAMPLE;
+                        while (index < limit) {
                             mic[idx_mic] = udp_frame[index];
                             idx_mic += 1;
                             index += 1;
@@ -375,7 +379,8 @@ pub const Reader = struct {
             while (smpl < smpls * 4) {
                 if (state == IQ) {
                     // Take IQ bytes
-                    while (index < index + defs.BYTES_PER_SAMPLE) {
+                    const limit = index + defs.BYTES_PER_SAMPLE;
+                    while (index < limit) {
                         iq[idx_iq] = udp_frame[index];
                         idx_iq += 1;
                         index += 1;
@@ -430,7 +435,8 @@ pub const Reader = struct {
                         sub_state = M;
                     } else {
                         // Take Mic bytes
-                        while (index < index + defs.MIC_BYTES_PER_SAMPLE) {
+                        const limit = index + defs.MIC_BYTES_PER_SAMPLE;
+                        while (index < limit) {
                             mic[idx_mic] = udp_frame[index];
                             idx_mic += 1;
                             index += 1;

@@ -76,18 +76,21 @@ pub const Pipeline = struct {
     // Extract data from IQ ring buffer
     fn wait_data() !bool {
         // Wait for a signal
+        var success: bool = false;
         mutex.lock();
         defer mutex.unlock();
         cond.timedWait(mutex, 10000000) catch |err| {
             if (err == error.Timeout) {
-                return false;
+                success = false;
             } else {
                 // Extract data from the ring buffer to local storage
-                var rb_slice: std.RingBuffer.Slice = try rb.sliceAt(rb.read_index, sz);
-                iq_data = rb_slice.first + rb_slice.second;
-                return true;
+                var rb_slice: std.RingBuffer.Slice = rb.sliceAt(rb.read_index, sz);
+                //iq_data = *rb_slice.first; // + *rb_slice.second;
+                std.debug.print("Data {}, {}\n", .{ rb_slice.first.len, rb_slice.second.len });
+                success = true;
             }
         };
+        return success;
     }
 
     // Run the sequence to process IQ data
