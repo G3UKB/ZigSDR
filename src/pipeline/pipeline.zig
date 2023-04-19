@@ -81,6 +81,7 @@ pub const Pipeline = struct {
         defer mutex.unlock();
         cond.timedWait(mutex, 10000000) catch |err| {
             if (err == error.Timeout) {
+                std.debug.print("Timeout\n", .{});
                 success = false;
             } else {
                 // Extract data from the ring buffer to local storage

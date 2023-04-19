@@ -83,12 +83,11 @@ pub const Reader = struct {
                 var resp: net.Socket.ReceiveFrom = undefined;
                 resp = try sock.receiveFrom(&udp_frame);
                 if (resp.numberOfBytes == 1032) {
-                    //try rb.writeSlice(&data);
                     try split_frame();
                 } else {
                     std.debug.print("Reader loop got short frame! Ignoring {any}\n", .{resp.numberOfBytes});
                 }
-                std.debug.print("Reader loop got {any}, {any}\n", .{ resp.numberOfBytes, resp.sender });
+                //std.debug.print("Reader loop got {any}, {any}\n", .{ resp.numberOfBytes, resp.sender });
                 n += 1;
             }
             std.time.sleep(100000000);
@@ -160,9 +159,10 @@ pub const Reader = struct {
         };
 
         // Signal the pipeline that data is available
-        mutex.lock();
-        defer mutex.unlock();
+        //mutex.lock();
+        //defer mutex.unlock();
         cond.signal();
+        std.debug.print("Signalled\n", .{});
     }
 
     // Split inti IQ and Mic frames
@@ -243,7 +243,7 @@ pub const Reader = struct {
                 }
                 smpl += 1;
             }
-            frame = 2;
+            frame += 1;
         }
         return smpls * 2;
     }
