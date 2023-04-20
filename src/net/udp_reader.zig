@@ -92,7 +92,7 @@ pub const Reader = struct {
             }
             std.time.sleep(100000000);
         }
-        std.debug.print("Reader loop exiting\n", .{});
+        std.debug.print("Reader thread exiting\n", .{});
     }
 
     // State settings
@@ -134,7 +134,7 @@ pub const Reader = struct {
                 i += 1;
             }
             if (try seq.SeqIn.check_ep6_seq(ep6_seq)) {
-                //Boolean return incase we need to do anything
+                // Boolean return incase we need to do anything
                 // Sequence errors are reported in cc-in
             }
         } else if (udp_frame[3] == defs.EP4) {
