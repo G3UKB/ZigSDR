@@ -159,8 +159,8 @@ pub const Reader = struct {
         };
 
         // Signal the pipeline that data is available
-        //mutex.lock();
-        //defer mutex.unlock();
+        mutex.lock();
+        defer mutex.unlock();
         cond.signal();
         std.debug.print("Signalled\n", .{});
     }
