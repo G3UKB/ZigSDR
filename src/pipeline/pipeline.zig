@@ -61,7 +61,11 @@ pub const Pipeline = struct {
 
         while (!terminate) {
             // Wait for data to be signalled
-            if (try wait_data()) {
+            if (wait_data()) {
+                // Extract data from the ring buffer to local storage
+                var rb_slice: std.RingBuffer.Slice = rb.sliceAt(rb.read_index, sz);
+                //iq_data = *rb_slice.first; // + *rb_slice.second;
+                std.debug.print("Data {}, {}\n", .{ rb_slice.first.len, rb_slice.second.len });
                 // Data to process, already extracted from ring buffer to iq_data
                 try run_sequence();
             }
@@ -75,9 +79,8 @@ pub const Pipeline = struct {
     }
 
     // Extract data from IQ ring buffer
-    fn wait_data() !bool {
+    fn wait_data() bool {
         var success: bool = false;
-        var signalled: bool = false;
 
         // Wait for a signal
         mutex.lock();
@@ -93,16 +96,8 @@ pub const Pipeline = struct {
                     }
                 }
             };
-            signalled = true;
-            break;
-        }
-        if (signalled) {
-            std.debug.print("Signalled\n", .{});
-            // Extract data from the ring buffer to local storage
-            var rb_slice: std.RingBuffer.Slice = rb.sliceAt(rb.read_index, sz);
-            //iq_data = *rb_slice.first; // + *rb_slice.second;
-            std.debug.print("Data {}, {}\n", .{ rb_slice.first.len, rb_slice.second.len });
             success = true;
+            break;
         }
         return success;
     }
