@@ -66,6 +66,7 @@ pub const Pipeline = struct {
                 try run_sequence();
             }
         }
+        std.debug.print("Pipeline thread exiting...\n", .{});
     }
 
     pub fn term() void {
