@@ -44,11 +44,11 @@ const net = struct {
 pub const Pipeline = struct {
 
     // Constants
-    const sz: usize = defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE;
+    const dsp_blk_sz: usize = defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE;
     // Module variables
     var terminate = false;
     var bprocess = false;
-    var iq_data = std.mem.zeroes([sz]u8);
+    var iq_data = std.mem.zeroes([dsp_blk_sz]u8);
     var rb: *std.RingBuffer = undefined;
     var mutex: *std.Thread.Mutex = undefined;
     var cond: *std.Thread.Condition = undefined;
@@ -72,9 +72,9 @@ pub const Pipeline = struct {
                     //iq_data = *rb_slice.first; // + *rb_slice.second;
                     //std.debug.print("Data {}, {}\n", .{ rb_slice.first.len, rb_slice.second.len });
                     // Data to process, already extracted from ring buffer to iq_data
-                    if (rb.len() > 6144) {
+                    if (rb.len() > dsp_blk_sz) {
                         var index: u32 = 0;
-                        while (index < 6144) {
+                        while (index < dsp_blk_sz) {
                             iq_data[index] = rb.readAssumeLength();
                             index += 1;
                         }
