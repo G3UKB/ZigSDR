@@ -70,7 +70,12 @@ pub const Hardware = struct {
     pub fn do_start(sock: *net.Socket, wbs: bool) !void {
 
         // Format start packet
-        var data = [4]u8{ 0xEF, 0xFE, 0x04, 0x01 };
+        var data = std.mem.zeroes([MAX_MSG]u8);
+        data[0] = 0xEF;
+        data[1] = 0xFE;
+        data[2] = 0x04;
+        data[3] = 0x01;
+
         if (!wbs) data[3] = 0x03;
         // Send start packet
         var e = try sock.sendTo(hwAddr, &data);
@@ -81,7 +86,12 @@ pub const Hardware = struct {
     pub fn do_stop(sock: *net.Socket) !void {
 
         // Format stop packet
-        const data = [4]u8{ 0xEF, 0xFE, 0x04, 0x00 };
+        var data = std.mem.zeroes([MAX_MSG]u8);
+        data[0] = 0xEF;
+        data[1] = 0xFE;
+        data[2] = 0x04;
+        data[3] = 0x00;
+
         // Send stop packet
         var e = try sock.sendTo(hwAddr, &data);
         std.debug.print("Stop sent {} bytes\n", .{e});

@@ -74,6 +74,7 @@ pub const Reader = struct {
         mutex = iq_mutex;
         cond = iq_cond;
         var n: u32 = 0;
+        _ = n;
         num_rx = globals.Globals.num_rx;
         sel_rx = globals.Globals.sel_rx;
         smpl_rate = globals.Globals.smpl_rate;
@@ -82,17 +83,17 @@ pub const Reader = struct {
             if (blisten) {
                 var resp: net.Socket.ReceiveFrom = undefined;
                 resp = try sock.receiveFrom(&udp_frame);
-                if (resp.numberOfBytes == 1032) {
+                if (resp.numberOfBytes == defs.FRAME_SZ) {
                     try split_frame();
                 } else {
                     std.debug.print("Reader loop got short frame! Ignoring {any}\n", .{resp.numberOfBytes});
                 }
-                //std.debug.print("Reader loop got {any}, {any}\n", .{ resp.numberOfBytes, resp.sender });
-                n += 1;
+            } else {
+                // Waste 10ms while not listening
+                std.time.sleep(10000000);
             }
-            std.time.sleep(100000000);
         }
-        std.debug.print("Reader thread exiting\n", .{});
+        std.debug.print("Reader thread exiting...\n", .{});
     }
 
     // State settings
@@ -110,7 +111,7 @@ pub const Reader = struct {
         terminate = true;
     }
 
-    // Split frame into protocol fields and data content and decode
+    // Split frame into protocol fields and data content and then decode
     fn split_frame() !void {
         // Check for frame type
         if (udp_frame[3] == defs.EP6) {
@@ -151,18 +152,20 @@ pub const Reader = struct {
         // Truncate if necessary for RX samples for current number of receivers
         // Need to resize array to actual number of samples
         var slice = iq[0 .. num_smpls * defs.BYTES_PER_SAMPLE];
+        //std.debug.print("Slice len {}\n", .{slice.len});
         // Copy the IQ data into the ring buffer
         rb.writeSlice(slice) catch |err| {
             if (err == error.Full) {
                 std.debug.print("IQ ring buffer full!\n", .{});
             }
         };
+        //std.debug.print("Write ptr {}\n", .{rb.write_index});
 
         // Signal the pipeline that data is available
         mutex.lock();
         defer mutex.unlock();
         cond.signal();
-        std.debug.print("Signalled\n", .{});
+        //std.debug.print("Signalled\n", .{});
     }
 
     // Split inti IQ and Mic frames
@@ -459,7 +462,7 @@ pub const Reader = struct {
 
 // Start reader loop
 fn reader_thrd(sock: *net.Socket, hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) !void {
-    std.debug.print("Reader thread\n", .{});
+    std.debug.print("Reader thread starting...\n", .{});
     try Reader.loop(sock, hwAddr, rb, iq_mutex, iq_cond);
 }
 

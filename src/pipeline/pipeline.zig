@@ -47,6 +47,7 @@ pub const Pipeline = struct {
     const sz: usize = defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE;
     // Module variables
     var terminate = false;
+    var bprocess = false;
     var iq_data = std.mem.zeroes([sz]u8);
     var rb: *std.RingBuffer = undefined;
     var mutex: *std.Thread.Mutex = undefined;
@@ -60,17 +61,42 @@ pub const Pipeline = struct {
         cond = iq_cond;
 
         while (!terminate) {
-            // Wait for data to be signalled
-            if (wait_data()) {
-                // Extract data from the ring buffer to local storage
-                var rb_slice: std.RingBuffer.Slice = rb.sliceAt(rb.read_index, sz);
-                //iq_data = *rb_slice.first; // + *rb_slice.second;
-                std.debug.print("Data {}, {}\n", .{ rb_slice.first.len, rb_slice.second.len });
-                // Data to process, already extracted from ring buffer to iq_data
-                try run_sequence();
+            if (bprocess) {
+                // Wait for data to be signalled
+                if (wait_data()) {
+                    // Extract data from the ring buffer to local storage
+                    //var rb_slice: std.RingBuffer.Slice = rb.sliceAt(rb.read_index, sz);
+                    //var rb_slice: std.RingBuffer.Slice = rb.sliceLast(sz);
+                    //std.debug.print("RB len {}, read ptr {}\n", .{ rb.len(), rb.read_index });
+                    //std.debug.print("Read ptr {}\n", .{rb.read_index});
+                    //iq_data = *rb_slice.first; // + *rb_slice.second;
+                    //std.debug.print("Data {}, {}\n", .{ rb_slice.first.len, rb_slice.second.len });
+                    // Data to process, already extracted from ring buffer to iq_data
+                    if (rb.len() > 6144) {
+                        var index: u32 = 0;
+                        while (index < 6144) {
+                            iq_data[index] = rb.readAssumeLength();
+                            index += 1;
+                        }
+                    }
+                    try run_sequence();
+                }
+            } else {
+                // Waste 10ms while not listening
+                std.time.sleep(10000000);
             }
         }
         std.debug.print("Pipeline thread exiting...\n", .{});
+    }
+
+    // State settings
+    pub fn process(state: bool) void {
+        if (state) {
+            bprocess = true;
+        } else {
+            bprocess = false;
+        }
+        std.debug.print("Process {}\n", .{bprocess});
     }
 
     pub fn term() void {
@@ -78,7 +104,7 @@ pub const Pipeline = struct {
         terminate = true;
     }
 
-    // Extract data from IQ ring buffer
+    // At each signal more data has been added to the ring buffer
     fn wait_data() bool {
         var success: bool = false;
 
@@ -99,6 +125,7 @@ pub const Pipeline = struct {
             success = true;
             break;
         }
+        //std.debug.print("Wait {}\n", .{success});
         return success;
     }
 
@@ -108,7 +135,7 @@ pub const Pipeline = struct {
 
 // Start pipeline loop
 fn pipeline_thrd(hwAddr: net.EndPoint, rb: *std.RingBuffer, iq_mutex: *std.Thread.Mutex, iq_cond: *std.Thread.Condition) !void {
-    std.debug.print("Reader thread\n", .{});
+    std.debug.print("Pipeline thread starting...\n", .{});
     try Pipeline.pipeline_run(hwAddr, rb, iq_mutex, iq_cond);
 }
 

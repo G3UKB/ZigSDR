@@ -78,20 +78,27 @@ pub fn main() !void {
     std.debug.print("Device addr: {}\n", .{hwAddr});
     // Revert socket
     try udp.udp_revert_socket();
-    // Start streaming
-    try hw.Hardware.do_start(&sock, false);
 
     // Create an iq ring buffer
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    var rb_iq = try std.RingBuffer.init(allocator, 1024 * 100);
+    var rb_iq = try std.RingBuffer.init(allocator, 262144);
 
     // Run pipeline thread
     pipelineThrd = try pipeline.pipeline_start(hwAddr, &rb_iq, &iq_mut, &iq_cond);
 
     // Run reader thread
     readerThrd = try reader.reader_start(&sock, hwAddr, &rb_iq, &iq_mut, &iq_cond);
+
+    // Give the threads a chance to start
+    std.time.sleep(1000000000);
+
+    // Start processing
+    pipeline.Pipeline.process(true);
     reader.Reader.listen(true);
+
+    // Start streaming
+    try hw.Hardware.do_start(&sock, false);
 
     // Run UI
     try ui.build();
