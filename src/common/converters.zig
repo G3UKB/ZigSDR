@@ -67,7 +67,8 @@ pub fn i8be_to_f64le(in_data: *[defs.DSP_BLK_SZ * 6]u8, out_data: *[defs.DSP_BLK
             (@as(i32, (in_data[(in_index)])) << 24)) >> 8;
 
         // Scale and write to target array
-        out_data[out_index] = @as(f64, as_int) * scale;
+        //out_data[out_index] = @as(f64, as_int) * scale;
+        out_data[out_index] = @intToFloat(f64, as_int) * scale;
 
         // BYTES_PER_SAMPLE is complex sample but we are moving I and then Q so /2
         in_index += defs.BYTES_PER_SAMPLE / 2;
