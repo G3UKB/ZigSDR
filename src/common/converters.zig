@@ -26,11 +26,11 @@
 const std = @import("std");
 
 const globals = struct {
-    usingnamespace @import("common/globals.zig");
+    usingnamespace @import("globals.zig");
 };
 
 const defs = struct {
-    usingnamespace @import("common/common_defs.zig");
+    usingnamespace @import("common_defs.zig");
 };
 
 //
@@ -39,14 +39,13 @@ const defs = struct {
 
 // Convert input buffer in i8 BE to output buffer f64 LE
 // Input side of DSP
-pub fn i8be_to_f64le(in_data: *[defs.DSP_BLK_SZ * 6]u8, out_data: *[defs.DSP_BLK_SZ * 2]f64) !void {
-    // The in_data is a Vec<i8> 1024 complex samples where each each interleaved I and Q are 24 bits in BE format.
+pub fn i8be_to_f64le(in_data: *[defs.DSP_BLK_SZ * 6]u8, out_data: *[defs.DSP_BLK_SZ * 2]f64) void {
+    // The in_data is a i8 1024 complex samples where each each interleaved I and Q are 24 bits in BE format.
     // Thus the length of the input data is 1024*6 representing the 1024 complex samples.
     // The output data is 1024 complex samples in f64 LE format suitable for the DSP exchange function.
 
     // Scale factors
-    var base: i32 = 2;
-    var scale: f64 = 1.0 / @as(f64, (base.pow(23)));
+    var scale: f64 = 1.0 / (std.math.pow(f64, 2, 23));
 
     // Size to iterate over
     var sz: u32 = (defs.DSP_BLK_SZ * defs.BYTES_PER_SAMPLE) - defs.BYTES_PER_SAMPLE / 2;
@@ -66,6 +65,7 @@ pub fn i8be_to_f64le(in_data: *[defs.DSP_BLK_SZ * 6]u8, out_data: *[defs.DSP_BLK
             ((@as(i32, (in_data[(in_index + 2)])) << 8) |
             (@as(i32, (in_data[(in_index + 1)])) << 16) |
             (@as(i32, (in_data[(in_index)])) << 24)) >> 8;
+
         // Scale and write to target array
         out_data[out_index] = @as(f64, as_int) * scale;
 
@@ -81,8 +81,9 @@ pub fn f64le_to_i8be(sample_sz: u32, in_data: [defs.DSP_BLK_SZ * 2]f64, out_data
     // This conversion is the opposite of the i8be_to_f64le() and is the output side of the DSP.
     // The converted data is suitable for insertion into the ring buffer to the UDP writer.
 
-    var base: i32 = 2;
-    var scale: f64 = @as(f64, base.pow(15));
+    //var base: i32 = 2;
+    //var scale: f64 = @as(f64, std.math.pow(2, 15));
+    var scale: f64 = std.math.pow(f64, 2, 15);
 
     var dest: usize = 0;
     var src: usize = 0;
@@ -133,8 +134,9 @@ pub fn f64le_to_i8le(sample_sz: u32, in_data: [defs.DSP_BLK_SZ * 2]f64, out_data
     var src: usize = 0;
     var l: i16 = 0;
     var r: i16 = 0;
-    var base: i32 = 2;
-    var scale: f64 = @as(f64, base.pow(15));
+    //var base: i32 = 2;
+    //var scale: f64 = @as(f64, std.math.pow(2, 15));
+    var scale: f64 = std.math.pow(f64, 2, 15);
 
     // We iterate on the output side starting at the MSB
     while (dest <= sample_sz - 4) {
@@ -156,8 +158,9 @@ pub fn f64le_to_i8le(sample_sz: u32, in_data: [defs.DSP_BLK_SZ * 2]f64, out_data
 //pub fn i8le_to_f32le(in_data: &Vec<u8>, out_data: &mut Vec<f32>, sz: u32) {
 //   // The U8 data in the ring buffer is ordered as LE i16 2 byte values
 //
-//    let base: i32 = 2;
-//    let scale: f32 = 1.0 /(base.pow(23)) as f32;
+//    //let base: i32 = 2;
+//    //let scale: f32 = 1.0 /(std.math.pow(2, 23)) as f32;
+//    let scale: f32 = 1.0 /(std.math.pow(f32, 2, 23);
 //    let mut src: u32 = 0;
 //    let mut dest: u32 = 0;
 //    let mut as_int_left: i16;
