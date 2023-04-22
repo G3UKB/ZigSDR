@@ -33,6 +33,10 @@ const defs = struct {
     usingnamespace @import("../common/common_defs.zig");
 };
 
+const converters = struct {
+    usingnamespace @import("../common/converters.zig");
+};
+
 const seq = struct {
     usingnamespace @import("../protocol/seq_in.zig");
 };
@@ -49,6 +53,7 @@ pub const Pipeline = struct {
     var terminate = false;
     var bprocess = false;
     var iq_data = std.mem.zeroes([dsp_blk_sz]u8);
+    var iq_dsp_data: [defs.DSP_BLK_SZ * 2]f64 = undefined;
     var rb: *std.RingBuffer = undefined;
     var mutex: *std.Thread.Mutex = undefined;
     var cond: *std.Thread.Condition = undefined;
@@ -130,7 +135,11 @@ pub const Pipeline = struct {
     }
 
     // Run the sequence to process IQ data
-    fn run_sequence() !void {}
+    fn run_sequence() !void {
+        // Convert the byte stream in BE 24 bit IQ samples -
+        // to LE 64 bit double samples for the DSP process
+        converters.i8be_to_f64le(&iq_data, &iq_dsp_data);
+    }
 };
 
 // Start pipeline loop
