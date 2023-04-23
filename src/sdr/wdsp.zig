@@ -92,3 +92,10 @@ pub fn wdsp_open_ch(ch_type: i32, ch_id: i32, iq_sz: i32, mic_sz: i32, in_rate: 
 pub fn wdsp_set_ch_state(ch_id: i32, state: i32, dmode: i32) !void {
     c.SetChannelState(ch_id, state, dmode);
 }
+
+// Data exchange
+pub fn wdsp_exchange(ch_id: i32, in_buf: *[defs.DSP_BLK_SZ * 2]f64, out_buf: *[defs.DSP_BLK_SZ * 2]f64) i32 {
+    var e: i32 = 0;
+    c.fexchange0(ch_id, in_buf, out_buf, &e);
+    return e;
+}

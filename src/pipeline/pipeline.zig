@@ -44,6 +44,9 @@ const seq = struct {
 const net = struct {
     usingnamespace @import("../net/network.zig");
 };
+const wdsp = struct {
+    usingnamespace @import("../sdr/wdsp.zig");
+};
 
 pub const Pipeline = struct {
 
@@ -54,6 +57,7 @@ pub const Pipeline = struct {
     var bprocess = false;
     var iq_data = std.mem.zeroes([dsp_blk_sz]u8);
     var iq_dsp_data: [defs.DSP_BLK_SZ * 2]f64 = undefined;
+    var iq_proc_data: [defs.DSP_BLK_SZ * 2]f64 = undefined;
     var rb: *std.RingBuffer = undefined;
     var mutex: *std.Thread.Mutex = undefined;
     var cond: *std.Thread.Condition = undefined;
@@ -139,6 +143,13 @@ pub const Pipeline = struct {
         // Convert the byte stream in BE 24 bit IQ samples -
         // to LE 64 bit double samples for the DSP process
         converters.i8be_to_f64le(&iq_data, &iq_dsp_data);
+
+        // Exchange data with DSP engine
+        var e: i32 = wdsp.wdsp_exchange(&iq_dsp_data, &iq_proc_data);
+        if (e == 0) {
+            // Successful exchange
+            // Process data for audio output
+        }
     }
 };
 
