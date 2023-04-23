@@ -32,6 +32,12 @@ const expect = std.testing.expect;
 const capy = @import("capy");
 pub usingnamespace capy.cross_platform;
 
+const globals = struct {
+    usingnamespace @import("common/globals.zig");
+};
+const defs = struct {
+    usingnamespace @import("common/common_defs.zig");
+};
 const net = struct {
     usingnamespace @import("net/network.zig");
 };
@@ -64,8 +70,12 @@ pub fn main() !void {
     var iq_mut = std.Thread.Mutex{};
     var iq_cond = std.Thread.Condition{};
 
-    // Initialise WSDP
+    // Initialise WSDP (creates wisdom file if not exist)
     try wdsp.init();
+    // Open a DSP receiver channel
+    try wdsp.wdsp_open_ch(defs.CH_RX, 0, defs.DSP_BLK_SZ, defs.DSP_BLK_SZ, globals.Globals.smpl_rate, defs.SMPLS_48K, 0.0, 0.0, 0.0, 0.0);
+    // and start the channel
+    try wdsp.wdsp_set_ch_state(0, 1, 0);
 
     // Initialise net
     try net.init();

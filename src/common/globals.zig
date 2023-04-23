@@ -25,5 +25,5 @@
 pub const Globals = struct {
     pub var num_rx: u32 = 1;
     pub var sel_rx: u32 = 1;
-    pub var smpl_rate: u32 = 48000;
+    pub var smpl_rate: i32 = 48000;
 };

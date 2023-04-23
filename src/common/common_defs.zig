@@ -92,8 +92,8 @@ pub const AUDIO_GAIN: f32 = 10.0;
 // Block size
 pub const DSP_BLK_SZ: u32 = 1024;
 // Channel type
-pub const CH_RX: u32 = 0;
-pub const CH_TX: u32 = 0;
+pub const CH_RX: i32 = 0;
+pub const CH_TX: i32 = 0;
 // Channel state
 pub const STATE_STOPPED: u32 = 0;
 pub const STATE_RUN: u32 = 1;

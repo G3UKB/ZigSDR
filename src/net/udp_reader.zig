@@ -75,9 +75,6 @@ pub const Reader = struct {
         cond = iq_cond;
         var n: u32 = 0;
         _ = n;
-        num_rx = globals.Globals.num_rx;
-        sel_rx = globals.Globals.sel_rx;
-        smpl_rate = globals.Globals.smpl_rate;
 
         while (!terminate) {
             if (blisten) {
