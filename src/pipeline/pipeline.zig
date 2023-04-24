@@ -145,7 +145,7 @@ pub const Pipeline = struct {
         converters.i8be_to_f64le(&iq_data, &iq_dsp_data);
 
         // Exchange data with DSP engine
-        if (wdsp.wdsp_exchange(&iq_dsp_data, &iq_proc_data) == 0) {
+        if (wdsp.wdsp_exchange(0, &iq_dsp_data, &iq_proc_data) == 0) {
             // Successful exchange
             // Process data for audio output
         }
